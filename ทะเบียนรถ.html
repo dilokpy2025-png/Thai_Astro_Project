@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>วิเคราะห์ทะเบียนรถ</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Sarabun', -apple-system, sans-serif; }
+        body {
+            background: linear-gradient(135deg, #6b2d8f, #9b59b6, #4a7c59);
+            color: #fff;
+            min-height: 100vh;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .app-container {
+            width: 100%;
+            max-width: 420px;
+            background: rgba(107, 45, 143, 0.25);
+            backdrop-filter: blur(12px);
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            border-radius: 20px;
+            padding: 24px 20px;
+            box-shadow: 0 8px 32px rgba(74, 124, 89, 0.4);
+        }
+        .header {
+            text-align: center;
+            padding-bottom: 16px;
+            border-bottom: 2px solid rgba(255, 215, 0, 0.4);
+            margin-bottom: 20px;
+        }
+        .header h1 { 
+            font-size: 26px; 
+            font-weight: 700; 
+            color: #FFD700;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        .header p { 
+            font-size: 16px; 
+            opacity: 0.9; 
+            margin-top: 6px; 
+            color: #a8e6cf; 
+        }
+        
+        .input-section { margin-bottom: 20px; }
+        .input-section label {
+            display: block;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #d4a5ff;
+        }
+        .input-section input {
+            width: 100%;
+            padding: 16px 18px;
+            border: 2px solid #4a7c59;
+            border-radius: 12px;
+            font-size: 22px;
+            background: rgba(255,255,255,0.95);
+            color: #333;
+            text-align: center;
+            letter-spacing: 3px;
+            transition: border-color 0.3s;
+        }
+        .input-section input:focus {
+            outline: none;
+            border-color: #FFD700;
+            box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.3);
+        }
+        .input-section input::placeholder { color: #999; letter-spacing: normal; }
+        
+        .btn-calculate {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #4a7c59, #5a9c69);
+            border: 2px solid #FFD700;
+            border-radius: 12px;
+            font-size: 20px;
+            font-weight: 700;
+            color: #FFD700;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+        .btn-calculate:hover {
+            background: linear-gradient(135deg, #5a9c69, #6abc79);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(74, 124, 89, 0.5);
+        }
+        .btn-calculate:active { transform: scale(0.98); }
+        
+        .result-section {
+            margin-top: 24px;
+            padding: 20px;
+            background: rgba(74, 124, 89, 0.3);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 16px;
+        }
+        .result-title {
+            font-size: 18px;
+            opacity: 0.95;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #d4a5ff;
+        }
+        .result-value {
+            font-size: 56px;
+            font-weight: 800;
+            color: #FFD700;
+            text-align: center;
+            line-height: 1;
+            margin: 12px 0;
+            text-shadow: 0 2px 8px rgba(255, 215, 0, 0.5);
+        }
+        .result-subtitle {
+            text-align: center;
+            font-size: 16px;
+            opacity: 0.9;
+            margin-bottom: 16px;
+            color: #a8e6cf;
+        }
+        
+        .sets-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            margin-bottom: 16px;
+        }
+        .set-card {
+            background: linear-gradient(135deg, rgba(107, 45, 143, 0.4), rgba(74, 124, 89, 0.4));
+            border: 1px solid rgba(255, 215, 0, 0.4);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            transition: transform 0.2s;
+        }
+        .set-card:hover {
+            transform: translateY(-2px);
+            border-color: #FFD700;
+        }
+        .set-label {
+            font-size: 15px;
+            opacity: 0.9;
+            margin-bottom: 8px;
+            color: #d4a5ff;
+            line-height: 1.4;
+        }
+        .set-value {
+            font-size: 36px;
+            font-weight: 700;
+            color: #FFD700;
+            text-shadow: 0 1px 4px rgba(255, 215, 0, 0.4);
+        }
+        
+        .steps-container {
+            margin-top: 18px;
+            background: rgba(107, 45, 143, 0.25);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 16px;
+            line-height: 1.8;
+        }
+        .step-title {
+            font-weight: 700;
+            color: #FFD700;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px dashed rgba(255, 215, 0, 0.4);
+            font-size: 17px;
+        }
+        .step-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            color: #e8d5f7;
+            font-size: 16px;
+        }
+        .step-row.total {
+            font-weight: 700;
+            color: #FFD700;
+            font-size: 18px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 2px solid #FFD700;
+        }
+        .empty-state {
+            text-align: center;
+            color: rgba(255,255,255,0.75);
+            font-style: italic;
+            padding: 20px;
+            font-size: 16px;
+        }
+        
+        .toggle-steps {
+            width: 100%;
+            margin-top: 14px;
+            padding: 12px;
+            background: rgba(74, 124, 89, 0.3);
+            border: 1px solid rgba(212, 165, 255, 0.5);
+            border-radius: 8px;
+            color: #d4a5ff;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .toggle-steps:hover {
+            background: rgba(74, 124, 89, 0.5);
+            border-color: #FFD700;
+        }
+        
+        @media (max-width: 360px) {
+            .app-container { padding: 20px 16px; }
+            .result-value { font-size: 48px; }
+            .sets-container { grid-template-columns: 1fr; }
+            .header h1 { font-size: 24px; }
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <div class="header">
+            <h1>🚗 วิเคราะห์ทะเบียนรถ</h1>
+            <p>พัฒนาโดย จารย์ แมว</p>
+        </div>
+        
+        <div class="input-section">
+            <label for="plate">กรอกทะเบียนรถ:</label>
+            <input type="text" id="plate" placeholder="เช่น 1กค 2211, กข 1234" maxlength="12" autocomplete="off">
+        </div>
+        
+        <button class="btn-calculate" onclick="calculatePlate()">💡 คำนวณผลรวม</button>
+        
+        <div class="result-section">
+            <div class="result-title">📊 ผลลัพธ์</div>
+            <div class="result-value" id="result">0</div>
+            <div class="result-subtitle" id="resultSubtitle">ผลรวมทั้งสองชุด</div>
+            
+            <div class="sets-container" id="setsDisplay" style="display:none;">
+                <div class="set-card">
+                    <div class="set-label">ชุดที่ 1 (อักษร+เลขหน้า)</div>
+                    <div class="set-value" id="set1Value">0</div>
+                </div>
+                <div class="set-card">
+                    <div class="set-label">ชุดที่ 2 (เลขทะเบียน)</div>
+                    <div class="set-value" id="set2Value">0</div>
+                </div>
+            </div>
+            
+            <button class="toggle-steps" onclick="toggleSteps()">🔍 แสดง/ซ่อน วิธีคิด</button>
+            <div class="steps-container" id="steps" style="display:none;">
+                <div class="empty-state">กรอกทะเบียนรถแล้วกดคำนวณ</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ตารางแปลงตัวอักษรไทยเป็นตัวเลข
+        const charToNum = {
+            'ก':'1','ด':'1','ถ':'1','ท':'1','ภ':'1','ฤ':'1',
+            'ข':'2','บ':'2','ป':'2','ง':'2','ช':'2',
+            'ต':'3','ฑ':'3','ฒ':'3','ฆ':'3',
+            'ค':'4','ธ':'4','ร':'4','ญ':'4','ษ':'4',
+            'ฉ':'5','ณ':'5','ฌ':'5','น':'5','ม':'5','ห':'5','ฮ':'5','ฎ':'5','ฬ':'5',
+            'จ':'6','ล':'6','ว':'6','อ':'6',
+            'ซ':'7','ศ':'7','ส':'7',
+            'ย':'8','ผ':'8','ฝ':'8','พ':'8','ฟ':'8',
+            'ฏ':'9','ฐ':'9'
+        };
+
+        function calculatePart(text, partName) {
+            const chars = text.match(/[ก-ฮฤ]/g) || [];
+            const digits = text.match(/\d/g) || [];
+            
+            let charValues = chars.map(c => ({char: c, val: parseInt(charToNum[c]) || 0}));
+            let digitValues = digits.map(d => ({char: d, val: parseInt(d)}));
+            
+            let steps = [];
+            if (charValues.length > 0) {
+                steps.push({
+                    label: 'ตัวอักษร',
+                    items: charValues.map(cv => `${cv.char}=${cv.val}`),
+                    sum: charValues.reduce((a,b) => a + b.val, 0)
+                });
+            }
+            if (digitValues.length > 0) {
+                steps.push({
+                    label: 'ตัวเลข',
+                    items: digitValues.map(dv => dv.char),
+                    sum: digitValues.reduce((a,b) => a + b.val, 0)
+                });
+            }
+            
+            const total = steps.reduce((a,b) => a + b.sum, 0);
+            return { steps, total, text };
+        }
+
+        function calculatePlate() {
+            const input = document.getElementById('plate').value.trim().toUpperCase();
+            const stepsDiv = document.getElementById('steps');
+            const resultDiv = document.getElementById('result');
+            const resultSubtitle = document.getElementById('resultSubtitle');
+            const setsDisplay = document.getElementById('setsDisplay');
+            const set1Value = document.getElementById('set1Value');
+            const set2Value = document.getElementById('set2Value');
+            
+            if (!input) {
+                stepsDiv.innerHTML = '<div class="empty-state">⚠️ กรุณากรอกทะเบียนรถ</div>';
+                stepsDiv.style.display = 'block';
+                setsDisplay.style.display = 'none';
+                resultDiv.textContent = '0';
+                resultSubtitle.textContent = 'ผลรวมทั้งสองชุด';
+                return;
+            }
+            
+            // แบ่งเป็น 2 ชุด ตามช่องว่าง
+            const parts = input.split(/\s+/).filter(p => p.length > 0);
+            if (parts.length < 2) {
+                stepsDiv.innerHTML = '<div class="empty-state">❌ กรุณากรอกแบบมีช่องว่าง เช่น "1กค 2211"</div>';
+                stepsDiv.style.display = 'block';
+                setsDisplay.style.display = 'none';
+                resultDiv.textContent = '0';
+                return;
+            }
+            
+            const part1 = parts[0];
+            const part2 = parts[1];
+            
+            const result1 = calculatePart(part1, 'ชุดที่ 1');
+            const result2 = calculatePart(part2, 'ชุดที่ 2');
+            const total = result1.total + result2.total;
+            
+            set1Value.textContent = result1.total;
+            set2Value.textContent = result2.total;
+            setsDisplay.style.display = 'grid';
+            
+            resultDiv.textContent = total;
+            resultSubtitle.textContent = `(${result1.total}) + (${result2.total}) = ${total}`;
+            
+            // สร้างขั้นตอนการคำนวณ
+            let html = '';
+            
+            html += `<div class="step-title">📦 ชุดที่ 1: "${part1}"</div>`;
+            result1.steps.forEach(step => {
+                html += `<div class="step-row"><span>${step.label}</span><span>${step.items.join(' ')} = ${step.sum}</span></div>`;
+            });
+            html += `<div class="step-row" style="font-weight:600;color:#FFD700"><span>รวมชุดที่ 1</span><span>${result1.total}</span></div>`;
+            
+            html += `<div class="step-title" style="margin-top:12px">📦 ชุดที่ 2: "${part2}"</div>`;
+            result2.steps.forEach(step => {
+                html += `<div class="step-row"><span>${step.label}</span><span>${step.items.join(' ')} = ${step.sum}</span></div>`;
+            });
+            html += `<div class="step-row" style="font-weight:600;color:#FFD700"><span>รวมชุดที่ 2</span><span>${result2.total}</span></div>`;
+            
+            html += `<div class="step-row total"><span>สูตรรวม</span><span>${result1.total} + ${result2.total} = ${total}</span></div>`;
+            
+            stepsDiv.innerHTML = html;
+            stepsDiv.style.display = 'block';
+            
+            // Animation
+            resultDiv.style.transform = 'scale(1.1)';
+            setTimeout(() => resultDiv.style.transform = 'scale(1)', 250);
+        }
+        
+        function toggleSteps() {
+            const steps = document.getElementById('steps');
+            steps.style.display = steps.style.display === 'none' ? 'block' : 'none';
+        }
+        
+        document.getElementById('plate').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') calculatePlate();
+        });
+    </script>
+</body>
+</html>
