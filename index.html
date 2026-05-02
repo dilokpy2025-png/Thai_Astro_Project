@@ -3,59 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>โปรเจกต์ทดสอบของฉัน</title>
+    <title>หน้าเว็บรวมลิงก์ของฉัน</title>
     <style>
         body {
-            font-family: sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f0f2f5;
-        }
-        .card {
-            background: white;
-            padding: 2rem;
-            border-radius: 15px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            font-family: 'Tahoma', sans-serif;
             text-align: center;
+            padding-top: 50px;
+            background-color: #f4f4f9;
         }
-        button {
-            background-color: #007bff;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
+        h1 {
+            color: #333;
         }
-        button:hover {
-            background-color: #0056b3;
+        .link-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 30px;
         }
-        #message {
-            margin-top: 20px;
+        a {
+            text-decoration: none;
+            color: #007bff;
+            font-size: 18px;
             font-weight: bold;
-            color: #28a745;
+        }
+        a:hover {
+            color: #0056b3;
+            text-decoration: underline;
         }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <h1>ยินดีด้วย! 🎉</h1>
-        <p>ถ้าคุณเห็นหน้านี้ แสดงว่าไฟล์ HTML ของคุณทำงานแล้ว</p>
-        <button onclick="sayHello()">ลองกดตรงนี้ดู</button>
-        <p id="message"></p>
+    <h1>ยินดีต้อนรับสู่เว็บไซต์ของฉัน</h1>
+    
+    <div class="link-container">
+        <a href="https://www.google.com" target="_blank">1. ค้นหาข้อมูลกับ Google</a>
+        <a href="https://www.youtube.com" target="_blank">2. ดูวิดีโอบน YouTube</a>
+        <a href="https://github.com" target="_blank">3. ไปที่ GitHub ของฉัน</a>
     </div>
-
-    <script>
-        function sayHello() {
-            const msg = document.getElementById('message');
-            msg.innerText = "ยินดีด้วย! เว็บไซต์ของคุณออนไลน์เรียบร้อยแล้ว 🚀";
-            console.log("ปุ่มถูกกดแล้ว!");
-        }
-    </script>
 
 </body>
 </html>
