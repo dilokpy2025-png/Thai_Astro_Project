@@ -704,7 +704,7 @@ function displayResults(planets) {
                     <div class="position-detail">
                         (${RASI_NAMES[p.result.rasi]} ${p.result.degree.toString().padStart(2,'0')}°${p.result.lipda.toString().padStart(2,'0')}')
                     </div>
-                    ${p.mean ? `<div class="mean-value">มัธยม: ${p.mean}</div>` : ''}
+                    
                 </div>
             </div>
 
@@ -1016,56 +1016,6 @@ function drawZodiacChart() {
     `).join('');
 }
 // ==================== Save/Load Functions ====================
-function exportJSON() {
-    if (!currentCalcData) { showToast('กรุณาคำนวณก่อน', 'error'); return; }
-    
-    const dataStr = JSON.stringify(currentCalcData, null, 2);
-    const blob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `suriyayatra_${currentCalcData.date.year}_${currentCalcData.date.month}_${currentCalcData.date.day}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    showToast('📄 บันทึก JSON เรียบร้อย', 'success');
-}
-
-function exportCSV() {
-    if (!currentCalcData) { showToast('กรุณาคำนวณก่อน', 'error'); return; }
-    
-    let csv = 'ดาว,ราศี,องศา,ลิปดา,มัธยมดาว(ถ้ามี)\n';
-    currentCalcData.planets.forEach(p => {
-        csv += `${p.name},${p.rasi},${p.degree},${p.lipda},"${p.mean || '-'}"\n`;
-    });
-    
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `suriyayatra_${currentCalcData.date.year}_${currentCalcData.date.month}_${currentCalcData.date.day}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-    showToast('📊 บันทึก CSV เรียบร้อย', 'success');
-}
-
-function saveToLocal() {
-    if (!currentCalcData) { showToast('กรุณาคำนวณก่อน', 'error'); return; }
-    
-    const saves = JSON.parse(localStorage.getItem('suriyayatra_saves') || '[]');
-    const saveEntry = {
-        id: Date.now(),
-        timestamp: new Date().toISOString(),
-        data: currentCalcData
-    };
-    saves.unshift(saveEntry);
-    
-    // Keep only last 20 saves
-    if (saves.length > 20) saves.pop();
-    
-    localStorage.setItem('suriyayatra_saves', JSON.stringify(saves));
-    showToast('💾 บันทึกลงเครื่องเรียบร้อย', 'success');
-    renderSavedList();
-}
 
 function renderSavedList() {
     const list = document.getElementById('savedList');
