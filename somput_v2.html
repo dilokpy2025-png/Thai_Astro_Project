@@ -1,0 +1,1639 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>คัมภีร์สุริยยาตร์ - ฉบับสมบูรณ์</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+/* ==================== Global Styles ==================== */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: 'Sarabun', Arial, sans-serif;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    padding: 20px;
+    color: #fff;
+    min-height: 100vh;
+}
+.container { max-width: 1200px; margin: auto; }
+
+/* ==================== Header ==================== */
+.header {
+    text-align: center;
+    padding: 30px 20px;
+    margin-bottom: 25px;
+}
+.header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #ffd700;
+    margin-bottom: 8px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+.header .subtitle {
+    color: rgba(255,255,255,0.8);
+    font-size: 14px;
+}
+.accuracy-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+    color: white;
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    margin-top: 10px;
+    font-weight: 600;
+}
+
+/* ==================== Input Box ==================== */
+.input-box {
+    background: rgba(255,243,214,0.95);
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 25px;
+    color: #333;
+}
+.input-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    align-items: flex-end;
+    margin-bottom: 15px;
+}
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 120px;
+}
+.input-group label {
+    font-weight: 600;
+    font-size: 13px;
+    color: #555;
+}
+input, select {
+    padding: 10px 12px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 15px;
+    font-family: 'Sarabun', sans-serif;
+    background: #fff;
+}
+input:focus, select:focus {
+    outline: none;
+    border-color: #ff7a00;
+    box-shadow: 0 0 0 3px rgba(255,122,0,0.15);
+}
+.btn-primary {
+    padding: 12px 28px;
+    background: linear-gradient(135deg, #ff7a00 0%, #ff9500 100%);
+    border: none;
+    color: white;
+    cursor: pointer;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 15px;
+    transition: all 0.2s;
+}
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255,122,0,0.4);
+}
+
+/* ==================== Info Panel ==================== */
+.info-panel {
+    background: rgba(255,215,0,0.15);
+    border: 1px solid rgba(255,215,0,0.3);
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+}
+.info-item {
+    text-align: center;
+    padding: 12px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 8px;
+}
+.info-item strong {
+    display: block;
+    color: #ffd700;
+    font-size: 12px;
+    margin-bottom: 5px;
+}
+.info-item span {
+    font-size: 18px;
+    font-weight: 600;
+    color: #fff;
+}
+
+/* ==================== Tabs ==================== */
+.tabs {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+.tab-btn {
+    padding: 10px 20px;
+    background: rgba(255,255,255,0.1);
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    border-radius: 8px 8px 0 0;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+.tab-btn.active {
+    background: rgba(255,215,0,0.3);
+    color: #ffd700;
+    font-weight: 600;
+}
+.tab-content {
+    display: none;
+    background: rgba(255,255,255,0.95);
+    padding: 20px;
+    border-radius: 0 12px 12px 12px;
+    color: #333;
+}
+.tab-content.active { display: block; }
+
+/* ==================== Planet Cards ==================== */
+.result-block { margin-bottom: 20px; }
+.planet-card {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    padding: 15px;
+    margin-bottom: 12px;
+    border-radius: 10px;
+    border-left: 4px solid #ff7a00;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+.planet-info { display: flex; align-items: center; gap: 12px; }
+.planet-icon { font-size: 24px; }
+.planet-name { font-weight: 600; color: #1a1a2e; }
+.position-value {
+    font-size: 17px;
+    color: #ff7a00;
+    font-weight: 700;
+}
+.position-detail {
+    font-size: 12px;
+    color: #666;
+    margin-top: 3px;
+}
+.mean-value {
+    font-size: 12px;
+    color: #888;
+    margin-top: 5px;
+}
+.toggle-btn {
+    background: none;
+    border: none;
+    color: #ff7a00;
+    cursor: pointer;
+    font-size: 12px;
+    padding: 5px 10px;
+    text-decoration: underline;
+}
+.step-details {
+    font-size: 11px;
+    color: #666;
+    margin-top: 10px;
+    padding: 10px;
+    background: #f1f3f5;
+    border-radius: 6px;
+    display: none;
+}
+.step-details.show { display: block; }
+
+/* ==================== Lunar Calendar ==================== */
+.lunar-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+.lunar-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 20px;
+    border-radius: 12px;
+    color: white;
+    text-align: center;
+}
+.lunar-card .icon { font-size: 32px; margin-bottom: 10px; }
+.lunar-card .label { font-size: 13px; opacity: 0.9; margin-bottom: 5px; }
+.lunar-card .value { font-size: 20px; font-weight: 700; }
+.lunar-holidays {
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    padding: 15px;
+    border-radius: 10px;
+    margin-top: 15px;
+}
+.lunar-holidays h4 { color: #856404; margin-bottom: 10px; }
+.holiday-list { list-style: none; }
+.holiday-list li {
+    padding: 5px 0;
+    border-bottom: 1px dashed #ddd;
+    font-size: 14px;
+}
+.holiday-list li:last-child { border-bottom: none; }
+.holiday-list li::before { content: "🌙 "; margin-right: 5px; }
+
+
+/* ==================== Zodiac Chart (Thai Style) ==================== */
+.chart-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 25px;
+    padding: 20px;
+    background: linear-gradient(135deg, rgba(255,215,0,0.1) 0%, rgba(255,193,7,0.05) 100%);
+    border-radius: 15px;
+    border: 2px solid rgba(255,215,0,0.3);
+}
+
+#zodiacChart {
+    background: radial-gradient(circle, #FFF8DC 0%, #FFFFFF 100%);
+    border-radius: 50%;
+    box-shadow: 0 8px 32px rgba(26,26,46,0.3), 
+                inset 0 0 60px rgba(255,215,0,0.2);
+    border: 3px solid #FFD700;
+}
+
+.chart-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    max-width: 100%;
+    padding: 15px;
+    background: rgba(255,255,255,0.9);
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    padding: 6px 12px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 8px;
+    border: 1px solid rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+}
+
+.legend-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.legend-color {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+/* ==================== Save/Load Panel ==================== */
+.save-load-panel {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+.save-card, .load-card {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 12px;
+    border: 2px dashed #ddd;
+}
+.save-card h4, .load-card h4 {
+    color: #1a1a2e;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.btn-secondary {
+    padding: 10px 20px;
+    background: #6c757d;
+    border: none;
+    color: white;
+    cursor: pointer;
+    border-radius: 8px;
+    font-weight: 500;
+    margin: 5px 5px 5px 0;
+    transition: background 0.2s;
+}
+.btn-secondary:hover { background: #5a6268; }
+.btn-success { background: #28a745; }
+.btn-success:hover { background: #218838; }
+.btn-info { background: #17a2b8; }
+.btn-info:hover { background: #138496; }
+.saved-list {
+    margin-top: 15px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+.saved-item {
+    padding: 10px;
+    background: #fff;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+}
+.saved-item .actions button {
+    padding: 4px 10px;
+    font-size: 11px;
+    margin-left: 5px;
+}
+
+/* ==================== Action Buttons ==================== */
+.action-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 25px 0;
+    justify-content: center;
+}
+
+/* ==================== Footer ==================== */
+.footer {
+    text-align: center;
+    padding: 25px;
+    opacity: 0.8;
+    font-size: 13px;
+    margin-top: 30px;
+}
+.footer a { color: #ffd700; text-decoration: none; }
+
+/* ==================== Toast ==================== */
+.toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #333;
+    color: white;
+    padding: 14px 24px;
+    border-radius: 10px;
+    display: none;
+    animation: slideIn 0.3s;
+    z-index: 1000;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+.toast.success { background: linear-gradient(135deg, #28a745, #20c997); }
+.toast.error { background: linear-gradient(135deg, #dc3545, #fd7e14); }
+.toast.info { background: linear-gradient(135deg, #17a2b8, #6f42c1); }
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+/* ==================== Responsive ==================== */
+@media (max-width: 768px) {
+    .input-row { flex-direction: column; align-items: stretch; }
+    .input-group { min-width: 100%; }
+    .planet-card { flex-direction: column; align-items: flex-start; }
+    .tabs { overflow-x: auto; padding-bottom: 5px; }
+    .tab-btn { flex-shrink: 0; }
+    .action-buttons { flex-direction: column; align-items: center; }
+    .action-buttons button { width: 100%; max-width: 300px; }
+}
+
+/* ==================== Print ==================== */
+@media print {
+    body { background: white; color: black; }
+    .input-box, .tabs, .action-buttons, .footer { display: none; }
+    .tab-content { display: block !important; background: white; color: black; }
+    .planet-card { border: 1px solid #ccc; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+<!-- Header -->
+<div class="header">
+    <h1>☀ คัมภีร์สุริยยาตร์</h1>
+    <div class="subtitle">ระบบคำนวณสมผุสดาวตามคัมภีร์สุริยยาตร์</div>
+    <div class="accuracy-badge">🟢ตามแนวทาง อาจารย์ พลตรี บุนนาค ทองเนียม</div>
+</div>
+<!-- Input Form -->
+<div class="input-box">
+    <div class="input-row">
+        <div class="input-group">
+            <label>📅 วัน</label>
+            <input type="number" id="day" value="25" min="1" max="31">
+        </div>
+        <div class="input-group">
+            <label>📆 เดือน</label>
+            <input type="number" id="month" value="5" min="1" max="12">
+        </div>
+        <div class="input-group">
+            <label>🗓️ ปี พ.ศ.</label>
+            <input type="number" id="year" value="2557" min="2400" max="2700">
+        </div>
+        <div class="input-group">
+            <label>🕐 เวลา</label>
+            <input type="time" id="time" value="09:00">
+        </div>
+        <button class="btn-primary" onclick="onCalculateClick()">🔮 คำนวณสมผุสดาว</button>
+    </div>
+    <div style="font-size: 12px; color: #666; margin-top: 10px;">
+        📌 หมายเหตุ: ระบบเริ่มนับจากวันเถลิงศก (16 เมษายน) ตามคัมภีร์สุริยยาตร์
+    </div>
+</div>
+
+<!-- Info Panel -->
+<div id="infoPanel" class="info-panel" style="display: none;">
+    <div class="info-grid">
+        <div class="info-item">
+            <strong>จุลศักราช</strong>
+            <span id="chulaEra">-</span>
+        </div>
+        <div class="info-item">
+            <strong>หรคุณ</strong>
+            <span id="horakhun">-</span>
+        </div>
+        <div class="info-item">
+            <strong>กัมมสัพพ์</strong>
+            <span id="kammasap">-</span>
+        </div>
+        <div class="info-item">
+            <strong>สุรทิน</strong>
+            <span id="surathin">-</span>
+        </div>
+        <div class="info-item">
+            <strong>ปีนักษัตร</strong>
+            <span id="zodiac">-</span>
+        </div>
+        <div class="info-item">
+            <strong>วันไทย</strong>
+            <span id="thaiDay">-</span>
+        </div>
+    </div>
+</div>
+
+<!-- Tabs -->
+<div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('planets')">🌟 สมผุสดาว</button>
+    <button class="tab-btn" onclick="switchTab('chart')">📊 กราฟตำแหน่งดาว</button>
+</div>
+
+<!-- Tab: Planets -->
+<div id="tab-planets" class="tab-content active">
+    <div id="results" class="result-block"></div>
+</div>
+
+<!-- Tab: Lunar Calendar -->
+<div id="tab-lunar" class="tab-content">
+    <h3 style="margin-bottom: 20px; color: #1a1a2e;">🌙 ข้อมูลปฏิทินจันทรคติไทย</h3>
+    <div class="lunar-grid" id="lunarGrid">
+        <!-- Lunar info will be inserted here -->
+    </div>
+    <div class="lunar-holidays" id="lunarHolidays" style="display: none;">
+        <h4>🙏 วันพระและวันสำคัญ</h4>
+        <ul class="holiday-list" id="holidayList"></ul>
+    </div>
+</div>
+
+<!-- Tab: Zodiac Chart -->
+<div id="tab-chart" class="tab-content">
+    <h3 style="margin-bottom: 20px; color: #1a1a2e; text-align: center;">📊 กราฟแสดงตำแหน่งดาวในราศี</h3>
+    <div class="chart-container">
+        <canvas id="zodiacChart" width="500" height="500"></canvas>
+        <div class="chart-legend" id="chartLegend">
+            <!-- Legend items will be inserted here -->
+        </div>
+    </div>
+</div>
+
+
+<!-- Footer -->
+<div class="footer">
+    <p>⚠️ สำหรับการศึกษาเท่านั้น</p>
+    <p>อ้างอิง: คัมภีร์พระสุริยยาตร์ ตามแนวทางอาจารย์ พลตรี บุนนาค ทองเนียม </p>
+</div>
+
+</div>
+
+<!-- Toast Notification -->
+<div id="toast" class="toast"></div>
+
+<script>
+// ==================== ค่าคงที่ ====================
+const RASI_NAMES = ["เมษ", "พฤษภ", "เมถุน", "กรกฎ", "สิงห์", "กันย์",
+                   "ตุลย์", "พิจิก", "ธนู", "มังกร", "กุมภ์", "มีน"];
+const LUNAR_MONTH_NAMES = ["อ้าย", "ยี่", "สาม", "สี่", "ห้า", "หก",
+                          "เจ็ด", "แปด", "เก้า", "สิบ", "สิบเอ็ด", "สิบสอง"];
+const THAI_MONTH_NAMES = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน",
+                         "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
+const DAY_NAMES = ["อาทิตย์", "จันทร์", "อังคาร", "พุธ", "พฤหัสบดี", "ศุกร์", "เสาร์"];
+const ZODIAC_NAMES = ["ชวด", "ฉลู", "ขาล", "เถาะ", "มะโรง", "มะเส็ง",
+                     "มะเมีย", "มะแม", "วอก", "ระกา", "จอ", "กุน"];
+const PLANET_ICONS = {
+    "อาทิตย์": "☀️", "จันทร์": "🌙", "อังคาร": "🔴", "พุธ": "☿️",
+    "พฤหัส": "🟡", "ศุกร์": "♀️", "เสาร์": "🪐",
+    "ราหู": "☊", "เกตุ": "☋", "มฤตยู": "♅"
+};
+const PLANET_COLORS = {
+    "อาทิตย์": "#FF6B35", "จันทร์": "#C0C0C0", "อังคาร": "#E74C3C",
+    "พุธ": "#3498DB", "พฤหัส": "#F39C12", "ศุกร์": "#E91E63",
+    "เสาร์": "#9B59B6", "ราหู": "#34495E", "เกตุ": "#16A085", "มฤตยู": "#2ECC71"
+};
+
+let currentResults = null;
+let currentCalcData = null;
+
+// ==================== Toast Notification ====================
+function showToast(message, type = 'success') {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.className = `toast ${type}`;
+    toast.style.display = 'block';
+    setTimeout(() => { toast.style.display = 'none'; }, 3500);
+}
+
+// ==================== Tab Switching ====================
+function switchTab(tabName) {
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+    
+    event.target.classList.add('active');
+    document.getElementById(`tab-${tabName}`).classList.add('active');
+    
+    if (tabName === 'chart' && currentResults) {
+        drawZodiacChart();
+    }
+    if (tabName === 'save') {
+        renderSavedList();
+    }
+}
+
+// ==================== Main Calculation ====================
+function onCalculateClick() {
+    const day = parseInt(document.getElementById("day").value);
+    const month = parseInt(document.getElementById("month").value);
+    const year = parseInt(document.getElementById("year").value);
+    const time = document.getElementById("time").value.split(":");
+    const hour = parseInt(time[0]);
+    const minute = parseInt(time[1]);
+
+// -----------------------------------------------------------------
+    // STEP 1 : จ.ศ.
+    // -------------------------
+    let chulaSakarat = year - 1181;
+    // --ตรวจสอบ วันที่ประสงค์ อยู่ก่อน หรือ หลัง วันเถลิงศก
+    // 1. แปลงปี พ.ศ. เป็น ค.ศ. (พ.ศ. - 543 = ค.ศ.)
+    let christianYear = year - 543;
+    // 2. สร้างวันที่ต้องการหา (เดือนใน JavaScript เริ่มที่ 0 = มกราคม)
+    let targetDate = new Date(christianYear, month - 1, day);
+    // 3. สร้างวันเถลิงศกของปี พ.ศ. นั้น (16 เมษายน)
+    let songkranCurrent = new Date(christianYear, 3, 16); // เดือน 3 = เมษายน
+    // 4. ตรวจสอบเงื่อนไข: ถึงวันเถลิงศกหรือยัง?
+    let startDate;
+    
+    if (targetDate >= songkranCurrent) {
+        // ถึงหรือหลัง 16 เม.ย. -> ใช้นับจากปี พ.ศ. นี้
+        startDate = songkranCurrent;
+    } else {
+        // ก่อน 16 เม.ย. -> ย้อนไปใช้ 16 เม.ย. ปี พ.ศ. ก่อนหน้า
+        startDate = new Date(christianYear - 1, 3, 16);
+        chulaSakarat = chulaSakarat - 1;
+    }
+    let diffTime = targetDate - startDate;
+    const surathin = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    
+	
+    // Basic validation
+    if (year < 2400 || year > 2700) { showToast('ปี พ.ศ. ต้องอยู่ระหว่าง 2400-2700', 'error'); return; }
+    if (month < 1 || month > 12) { showToast('เดือนต้องอยู่ระหว่าง 1-12', 'error'); return; }
+    if (day < 1 || day > 31) { showToast('วันต้องอยู่ระหว่าง 1-31', 'error'); return; }
+
+    // STEP 1-6: Calculate Horakhun
+//   const chulaSakarat = year - 1181;
+    const step2 = (292207 * chulaSakarat) + 373;
+    const horakhun0Leng = Math.floor(step2 / 800);
+    const kammasap = step2 - (horakhun0Leng * 800);
+    const horakhunLeng = horakhun0Leng + 1;
+//    const monthDiff = month - 4;
+//    const surathin = (31 * monthDiff) - 1 + (day - 16);
+    const horakhunPrasong = horakhunLeng + surathin;
+    const horakhunZero = horakhunPrasong - 1;
+
+    // Show info panel
+    document.getElementById('infoPanel').style.display = 'block';
+    document.getElementById('chulaEra').textContent = chulaSakarat;
+    document.getElementById('horakhun').textContent = horakhunZero.toLocaleString();
+    document.getElementById('kammasap').textContent = kammasap;
+    document.getElementById('surathin').textContent = surathin;
+    document.getElementById('zodiac').textContent = `ปี${getZodiacYear(year)}`;
+    document.getElementById('thaiDay').textContent = getThaiDayName(year, month, day);
+
+    // Calculate planets
+    const sun = calculateSun(horakhunZero, hour, minute);
+    const moon = calculateMoon(horakhunZero, sun.meanSunL, hour, minute);
+    const PannetPower = calculateKamlangRavi(sun.meanSunL, sun.kammasapP, chulaSakarat);
+    
+    const planets = [
+        { name: "อาทิตย์", result: sun, mean: formatLipda(sun.meanSunL), color: PLANET_COLORS["อาทิตย์"] },
+        { name: "จันทร์", result: moon, color: PLANET_COLORS["จันทร์"] },
+        { name: "อังคาร", result: calculateMars(PannetPower.kamlang, PannetPower.meanRavi), color: PLANET_COLORS["อังคาร"] },
+        { name: "พุธ", result: calculateMercury(PannetPower.kamlang, PannetPower.meanRavi), color: PLANET_COLORS["พุธ"] },
+        { name: "พฤหัส", result: calculateJupiter(PannetPower.kamlang, PannetPower.meanRavi), color: PLANET_COLORS["พฤหัส"] },
+        { name: "ศุกร์", result: calculateVenus(PannetPower.kamlang, PannetPower.meanRavi), color: PLANET_COLORS["ศุกร์"] },
+        { name: "เสาร์", result: calculateSaturn(PannetPower.kamlang, PannetPower.meanRavi), color: PLANET_COLORS["เสาร์"] },
+        { name: "ราหู", result: calculateRahu(PannetPower.kamlang), color: PLANET_COLORS["ราหู"] },
+        { name: "เกตุ", result: calculateKetu(horakhunZero, hour, minute), color: PLANET_COLORS["เกตุ"] },
+        { name: "มฤตยู", result: calculateUranus(PannetPower.kamlang, PannetPower.meanRavi), color: PLANET_COLORS["มฤตยู"] }
+    ];
+    
+    const ascendant = calculateAsc(sun, hour, minute);
+    planets.push({ name: "ลัคนา", result: ascendant, color: "#2ECC71", isAsc: true });
+
+    // Store results
+    currentResults = planets;
+    currentCalcData = {
+        date: { year, month, day, hour, minute },
+        chulaSakarat, horakhunZero, kammasap, surathin,
+        planets: planets.map(p => ({
+            name: p.name,
+            rasi: p.result.rasi,
+            degree: p.result.degree,
+            lipda: p.result.lipda,
+            mean: p.mean || null
+        }))
+    };
+
+    // Display
+    displayResults(planets);
+    displayLunarCalendar(year, month, day);
+    if (document.getElementById('tab-chart').classList.contains('active')) {
+        drawZodiacChart();
+    }
+    
+    showToast('✅ คำนวณเสร็จสิ้น!', 'success');
+}
+
+// ==================== Display Functions ====================
+function displayResults(planets) {
+    let html = '';
+    planets.forEach(p => {
+        const icon = p.isAsc ? "🏠" : (PLANET_ICONS[p.name] || "⭐");
+        html += `
+        <div class="planet-card" style="border-left-color: ${p.color}">
+            <div class="planet-info">
+                <span class="planet-icon">${icon}</span>
+                <div>
+                    <div class="planet-name">ดาว${p.name}</div>
+                    <div class="position-value">
+                        ${p.result.rasi} ราศี ${p.result.degree}° ${p.result.lipda}'
+                    </div>
+                    <div class="position-detail">
+                        (${RASI_NAMES[p.result.rasi]} ${p.result.degree.toString().padStart(2,'0')}°${p.result.lipda.toString().padStart(2,'0')}')
+                    </div>
+                    ${p.mean ? `<div class="mean-value">มัธยม: ${p.mean}</div>` : ''}
+                </div>
+            </div>
+
+        </div>`;
+    });
+    document.getElementById("results").innerHTML = html;
+}
+
+function toggleDetails(planetName) {
+    const el = document.getElementById(`details-${planetName}`);
+    el.classList.toggle('show');
+}
+
+function formatLipda(lipda) {
+    const r = Math.floor(lipda / 1800);
+    const rem = lipda % 1800;
+    const d = Math.floor(rem / 60);
+    const l = rem % 60;
+    return `${RASI_NAMES[r]} ${d}° ${l}'`;
+}
+
+// ==================== Lunar Calendar ====================
+function displayLunarCalendar(year, month, day) {
+    const solarDate = new Date(year - 543, month - 1, day);
+    const lunar = calculateThaiLunar(year, month, day);
+    const isHolyDay = checkHolyDay(lunar);
+    
+    const grid = document.getElementById('lunarGrid');
+    grid.innerHTML = `
+        <div class="lunar-card">
+            <div class="icon">🌙</div>
+            <div class="label">เดือนจันทรคติ</div>
+            <div class="value">เดือน${lunar.monthName}</div>
+        </div>
+        <div class="lunar-card">
+            <div class="icon">${lunar.paksa === 'ขึ้น' ? '🌒' : '🌘'}</div>
+            <div class="label">ข้าง</div>
+            <div class="value">${lunar.paksa} ${lunar.day} ค่ำ</div>
+        </div>
+        <div class="lunar-card">
+            <div class="icon">🐉</div>
+            <div class="label">ปีนักษัตร</div>
+            <div class="value">ปี${getZodiacYear(year)}</div>
+        </div>
+        <div class="lunar-card">
+            <div class="icon">📅</div>
+            <div class="label">วันไทย</div>
+            <div class="value">${getThaiDayName(year, month, day)}</div>
+        </div>
+    `;
+    
+    // Show holidays if applicable
+    const holidaysDiv = document.getElementById('lunarHolidays');
+    const holidayList = document.getElementById('holidayList');
+    
+    if (isHolyDay.length > 0) {
+        holidaysDiv.style.display = 'block';
+        holidayList.innerHTML = isHolyDay.map(h => `<li>${h}</li>`).join('');
+    } else {
+        holidaysDiv.style.display = 'none';
+    }
+}
+
+function calculateThaiLunar(year, month, day) {
+    // Reference full moon: Nov 15, 2024 (เดือน 12 ขึ้น 15 ค่ำ)
+    const refFullMoon = new Date(2024, 10, 15);
+    const targetDate = new Date(year - 543, month - 1, day);
+    const deltaDays = Math.floor((targetDate - refFullMoon) / (1000 * 60 * 60 * 24));
+    
+    const lunarCycle = 29.53059;
+    let cyclePos = deltaDays % lunarCycle;
+    if (cyclePos < 0) cyclePos += lunarCycle;
+    
+    // Determine paksa and day
+    let paksa, lunarDay;
+    if (cyclePos < 14.765) {
+        paksa = "ขึ้น";
+        lunarDay = Math.floor(cyclePos) + 1;
+    } else {
+        paksa = "แรม";
+        lunarDay = Math.floor(lunarCycle - cyclePos) + 1;
+    }
+    if (lunarDay > 15) lunarDay = 15;
+    
+    // Calculate lunar month (approximate)
+    const monthOffset = Math.floor(deltaDays / lunarCycle) % 12;
+    let lunarMonth = (11 + monthOffset) % 12; // Month 12 as base
+    if (lunarMonth === 0) lunarMonth = 12;
+    
+    // Check for intercalary month (simplified)
+    const isExtraMonth = checkIntercalaryMonth(year, lunarMonth);
+    const monthName = isExtraMonth ? `${LUNAR_MONTH_NAMES[lunarMonth-1]} (อธิกมาส)` : LUNAR_MONTH_NAMES[lunarMonth-1];
+    
+    return {
+        month: lunarMonth,
+        monthName: monthName,
+        paksa: paksa,
+        day: lunarDay,
+        isExtraMonth: isExtraMonth
+    };
+}
+
+function checkIntercalaryMonth(year, month) {
+    // Simplified: Years divisible by 5 may have intercalary month 8
+    // In reality, this requires complex astronomical calculation
+    if (year % 5 === 0 && month === 8) return true;
+    return false;
+}
+
+function checkHolyDay(lunar) {
+    const holidays = [];
+    if (lunar.day === 8 || lunar.day === 15) {
+        holidays.push(`วันพระ (${lunar.paksa} ${lunar.day} ค่ำ)`);
+    }
+    // Add more Thai Buddhist holidays as needed
+    return holidays;
+}
+
+function getZodiacYear(yearBE) {
+    const ZODIAC_NAMES = [
+        "ชวด", "ฉลู", "ขาล", "เถาะ", "มะโรง", "มะเส็ง",
+        "มะเมีย", "มะแม", "วอก", "ระกา", "จอ", "กุน"
+    ];
+    // สูตร: (ปี พ.ศ. - 7) % 12
+    const index = (yearBE - 7) % 12;
+    // รองรับค่าลบ (สำหรับปีก่อน พ.ศ. 7)
+    return ZODIAC_NAMES[index >= 0 ? index : index + 12];
+}
+
+function getThaiDayName(year, month, day) {
+    const date = new Date(year - 543, month - 1, day);
+    return DAY_NAMES[date.getDay()];
+}
+
+// ==================== Zodiac Chart ====================
+// ==================== Zodiac Chart (Thai Style) ====================
+function drawZodiacChart() {
+    if (!currentResults) return;
+    
+    const canvas = document.getElementById('zodiacChart');
+    const ctx = canvas.getContext('2d');
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    const radius = 180;
+    
+    // Thai Zodiac Names - เรียงทวนเข็มนาฬิกาจาก 6 โมง (เมษ)
+    const THAI_RASI_NAMES = [
+        "เมษ(3)", "พฤษภ(6)", "เมถุน(4)", "กรกฎ(2)",
+        "สิงห์(1)", "กันย์(4)", "ตุล(6)", "พิจิก(3)",
+        "ธนู(5)", "มังกร(7)", "กุมภ์(8)", "มีน(5)"
+    ];
+    
+    // Thai Numerals for Planets
+    const PLANET_NUMBERS = {
+        "อาทิตย์": "๑", "จันทร์": "๒", "อังคาร": "๓", "พุธ": "๔",
+        "พฤหัส": "๕", "ศุกร์": "๖", "เสาร์": "๗", "ราหู": "๘",
+        "เกตุ": "๙", "มฤตยู": "๐", "ลัคนา": "ล"
+    };
+    
+    // Clear canvas with black background
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Convert astrology angle to canvas angle
+    function toCanvasAngle(astroAngle) {
+        return (90 - astroAngle) * Math.PI / 180;
+    }
+    
+    // Get zodiac sign angle range (เมษอยู่ด้านล่าง 180°)
+    function getRasiAngleRange(rasiIndex) {
+        const centerAngle = (180 + rasiIndex * 30) % 360;
+        const startAngle = (centerAngle - 15 + 360) % 360;
+        const endAngle = (centerAngle + 15) % 360;
+        return { center: centerAngle, start: startAngle, end: endAngle };
+    }
+    
+    // ========== DRAW OUTER RINGS ==========
+    
+    // Outer ring (gold)
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+    ctx.strokeStyle = '#FFD700';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    
+    // Inner ring boundary (for zodiac names area)
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius - 40, 0, Math.PI * 2);
+    ctx.strokeStyle = '#FFFFFF';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    
+    // ========== DRAW 12 DIVISION LINES (จากศูนย์กลางถึงขอบนอก) ==========
+    for (let i = 0; i < 12; i++) {
+        const angle = 15 + i * 30; // 15°, 45°, 75°, ..., 345°
+        const canvasAngle = toCanvasAngle(angle);
+        
+        // เส้นจากจุดศูนย์กลางถึงขอบนอกสุด
+        const x1 = centerX; // จุดศูนย์กลาง
+        const y1 = centerY;
+        const x2 = centerX + radius * Math.cos(canvasAngle);
+        const y2 = centerY + radius * Math.sin(canvasAngle);
+        
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.strokeStyle = '#FFFFFF';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+    }
+    
+    // ========== DRAW RAASI NAMES (วงนอก) ==========
+    ctx.font = 'bold 13px Sarabun';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    
+    for (let i = 0; i < 12; i++) {
+        const range = getRasiAngleRange(i);
+        const canvasAngle = toCanvasAngle(range.center);
+        
+        const labelRadius = radius - 20;
+        const labelX = centerX + labelRadius * Math.cos(canvasAngle);
+        const labelY = centerY + labelRadius * Math.sin(canvasAngle);
+        
+        ctx.save();
+        ctx.translate(labelX, labelY);
+        ctx.rotate(canvasAngle + Math.PI / 2);
+        
+        // สีตามธาตุ
+        if (i === 0 || i === 4 || i === 8) {
+            ctx.fillStyle = '#FF6B35'; // ไฟ
+        } else if (i === 1 || i === 5 || i === 9) {
+            ctx.fillStyle = '#FFD23F'; // ดิน
+        } else if (i === 2 || i === 6 || i === 10) {
+            ctx.fillStyle = '#FFB347'; // ลม
+        } else {
+            ctx.fillStyle = '#FF8C42'; // น้ำ
+        }
+        
+        ctx.fillText(THAI_RASI_NAMES[i], 0, 0);
+        ctx.restore();
+    }
+    
+    // ========== GROUP AND DRAW PLANETS ==========
+    const planetsByRasi = {};
+    for (let i = 0; i < 12; i++) {
+        planetsByRasi[i] = [];
+    }
+    
+    currentResults.forEach(planet => {
+        if (planet.isAsc) return;
+        planetsByRasi[planet.result.rasi].push(planet);
+    });
+    
+    currentResults.forEach(planet => {
+        if (planet.isAsc) return;
+        
+        const rasiIndex = planet.result.rasi;
+        const degreeInRasi = planet.result.degree + planet.result.lipda / 60;
+        
+        const range = getRasiAngleRange(rasiIndex);
+        const astroAngle = (range.start + degreeInRasi) % 360;
+        const canvasAngle = toCanvasAngle(astroAngle);
+        
+        const planetsInThisRasi = planetsByRasi[rasiIndex];
+        const planetIndex = planetsInThisRasi.indexOf(planet);
+        
+        // วางดาวในช่องราศี (ห่างจากศูนย์กลาง)
+        const plotRadius = radius - 70 - (planetIndex * 18);
+        
+        const x = centerX + plotRadius * Math.cos(canvasAngle);
+        const y = centerY + plotRadius * Math.sin(canvasAngle);
+        
+        // Planet marker (วงกลมสี)
+        ctx.beginPath();
+        ctx.arc(x, y, 10, 0, Math.PI * 2);
+        ctx.fillStyle = planet.color;
+        ctx.fill();
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // Planet NUMBER (ตัวเลขไทย)
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 18px Sarabun';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(PLANET_NUMBERS[planet.name] || '?', x, y);
+        
+        // Planet name (ด้านนอกรวงกลม)
+        const labelRadius = radius + 30;
+        const labelX = centerX + labelRadius * Math.cos(canvasAngle);
+        const labelY = centerY + labelRadius * Math.sin(canvasAngle);
+        
+        ctx.fillStyle = planet.color;
+        ctx.font = 'bold 11px Sarabun';
+        ctx.fillText(planet.name, labelX, labelY);
+    });
+    
+    // Draw legend with Thai numbers
+    const legend = document.getElementById('chartLegend');
+    legend.innerHTML = currentResults.filter(p => !p.isAsc).map(p => `
+        <div class="legend-item">
+            <div class="legend-color" style="background: ${p.color}; border-radius: 50%; width: 20px; height: 20px; display: inline-flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 12px;">
+                ${PLANET_NUMBERS[p.name] || '?'}
+            </div>
+            <span>${p.name}: ${p.result.rasi}ราศี ${p.result.degree}°${p.result.lipda}'</span>
+        </div>
+    `).join('');
+}
+// ==================== Save/Load Functions ====================
+function exportJSON() {
+    if (!currentCalcData) { showToast('กรุณาคำนวณก่อน', 'error'); return; }
+    
+    const dataStr = JSON.stringify(currentCalcData, null, 2);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `suriyayatra_${currentCalcData.date.year}_${currentCalcData.date.month}_${currentCalcData.date.day}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('📄 บันทึก JSON เรียบร้อย', 'success');
+}
+
+function exportCSV() {
+    if (!currentCalcData) { showToast('กรุณาคำนวณก่อน', 'error'); return; }
+    
+    let csv = 'ดาว,ราศี,องศา,ลิปดา,มัธยมดาว(ถ้ามี)\n';
+    currentCalcData.planets.forEach(p => {
+        csv += `${p.name},${p.rasi},${p.degree},${p.lipda},"${p.mean || '-'}"\n`;
+    });
+    
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `suriyayatra_${currentCalcData.date.year}_${currentCalcData.date.month}_${currentCalcData.date.day}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('📊 บันทึก CSV เรียบร้อย', 'success');
+}
+
+function saveToLocal() {
+    if (!currentCalcData) { showToast('กรุณาคำนวณก่อน', 'error'); return; }
+    
+    const saves = JSON.parse(localStorage.getItem('suriyayatra_saves') || '[]');
+    const saveEntry = {
+        id: Date.now(),
+        timestamp: new Date().toISOString(),
+        data: currentCalcData
+    };
+    saves.unshift(saveEntry);
+    
+    // Keep only last 20 saves
+    if (saves.length > 20) saves.pop();
+    
+    localStorage.setItem('suriyayatra_saves', JSON.stringify(saves));
+    showToast('💾 บันทึกลงเครื่องเรียบร้อย', 'success');
+    renderSavedList();
+}
+
+function renderSavedList() {
+    const list = document.getElementById('savedList');
+    const saves = JSON.parse(localStorage.getItem('suriyayatra_saves') || '[]');
+    
+    if (saves.length === 0) {
+        list.innerHTML = '<div style="color: #666; font-size: 13px;">ยังไม่มีบันทึก</div>';
+        return;
+    }
+    
+    list.innerHTML = saves.map(save => {
+        const d = save.data.date;
+        const dateStr = `${d.day}/${d.month}/${d.year}`;
+        return `
+        <div class="saved-item">
+            <span>📅 ${dateStr} ${d.hour}:${d.minute.toString().padStart(2,'0')}</span>
+            <div class="actions">
+                <button class="btn-secondary btn-info" onclick="loadFromId(${save.id})">โหลด</button>
+                <button class="btn-secondary" onclick="deleteSave(${save.id})" style="background:#dc3545">ลบ</button>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function loadFromId(id) {
+    const saves = JSON.parse(localStorage.getItem('suriyayatra_saves') || '[]');
+    const save = saves.find(s => s.id === id);
+    
+    if (save) {
+        currentCalcData = save.data;
+        currentResults = save.data.planets.map(p => ({
+            name: p.name,
+            result: { rasi: p.rasi, degree: p.degree, lipda: p.lipda },
+            mean: p.mean,
+            color: PLANET_COLORS[p.name] || '#666',
+            isAsc: p.name === "ลัคนา"
+        }));
+        
+        // Update UI
+        document.getElementById('year').value = currentCalcData.date.year;
+        document.getElementById('month').value = currentCalcData.date.month;
+        document.getElementById('day').value = currentCalcData.date.day;
+        document.getElementById('time').value = `${currentCalcData.date.hour.toString().padStart(2,'0')}:${currentCalcData.date.minute.toString().padStart(2,'0')}`;
+        
+        document.getElementById('infoPanel').style.display = 'block';
+        document.getElementById('chulaEra').textContent = currentCalcData.chulaSakarat;
+        document.getElementById('horakhun').textContent = currentCalcData.horakhunZero.toLocaleString();
+        
+        displayResults(currentResults);
+        displayLunarCalendar(
+            currentCalcData.date.year,
+            currentCalcData.date.month,
+            currentCalcData.date.day
+        );
+        
+        showToast('📥 โหลดข้อมูลสำเร็จ', 'success');
+    }
+}
+
+function deleteSave(id) {
+    let saves = JSON.parse(localStorage.getItem('suriyayatra_saves') || '[]');
+    saves = saves.filter(s => s.id !== id);
+    localStorage.setItem('suriyayatra_saves', JSON.stringify(saves));
+    renderSavedList();
+    showToast('🗑️ ลบบันทึกแล้ว', 'info');
+}
+
+function loadFromFile() {
+    const input = document.getElementById('loadFile');
+    if (!input.files[0]) { showToast('กรุณาเลือกไฟล์', 'error'); return; }
+    
+    const file = input.files[0];
+    const reader = new FileReader();
+    
+    reader.onload = function(e) {
+        try {
+            const data = JSON.parse(e.target.result);
+            currentCalcData = data;
+            currentResults = data.planets.map(p => ({
+                name: p.name,
+                result: { rasi: p.rasi, degree: p.degree, lipda: p.lipda },
+                mean: p.mean,
+                color: PLANET_COLORS[p.name] || '#666',
+                isAsc: p.name === "ลัคนา"
+            }));
+            
+            // Update UI
+            document.getElementById('year').value = data.date.year;
+            document.getElementById('month').value = data.date.month;
+            document.getElementById('day').value = data.date.day;
+            document.getElementById('time').value = `${data.date.hour.toString().padStart(2,'0')}:${data.date.minute.toString().padStart(2,'0')}`;
+            
+            document.getElementById('infoPanel').style.display = 'block';
+            document.getElementById('chulaEra').textContent = data.chulaSakarat;
+            document.getElementById('horakhun').textContent = data.horakhunZero.toLocaleString();
+            
+            displayResults(currentResults);
+            displayLunarCalendar(data.date.year, data.date.month, data.date.day);
+            
+            showToast('📂 โหลดไฟล์สำเร็จ', 'success');
+        } catch (err) {
+            showToast('❌ ไฟล์ไม่ถูกต้อง', 'error');
+        }
+    };
+    
+    reader.readAsText(file);
+}
+
+// ==================== Astrological Calculation Functions ====================
+// [All calculateSun, calculateMoon, calculateMars, etc. functions remain the same as before]
+// For brevity, I'm including the key ones - the full versions are in the previous code
+
+function calculateSun(HORAKHUN, hour, minute) {
+    let timeFraction = (hour + (minute / 60)) / 24;
+    let raw = (HORAKHUN * 800) + Math.floor(timeFraction * 800) - 373;
+    let meanMotion = raw - (Math.floor(raw / 292207) * 292207);
+    let Kammasapp = raw % 292207;
+    let r = Math.floor(meanMotion / 24350);
+    let rem1 = meanMotion - (r * 24350);
+    let o = Math.floor(rem1 / 811);
+    let rem2 = rem1 - (o * 811);
+    let l = Math.floor(rem2 / 14);
+    l = l - 3; if (l < 0) l += 60;
+    let meanSunLipda = (r * 1800) + (o * 60) + l;
+    let angleA = meanSunLipda - 4800; if (angleA < 0) angleA += 21600;
+    let P, sign;
+    if (angleA <= 5400) { P = angleA; sign = -1; }
+    else if (angleA <= 10800) { P = 10800 - angleA; sign = -1; }
+    else if (angleA <= 16200) { P = angleA - 10800; sign = 1; }
+    else { P = 21600 - angleA; sign = 1; }
+    const SUN_TABLE = [0, 35, 67, 94, 116, 129, 134];
+    let idx = Math.floor(P / 900);
+    let base = SUN_TABLE[idx];
+    let next = SUN_TABLE[idx + 1];
+    let correction = Math.floor(base + ((P - (idx * 900)) * (next - base) / 900));
+    let trueSun = meanSunLipda + (correction * sign);
+    if (trueSun < 0) trueSun += 21600; if (trueSun >= 21600) trueSun -= 21600;
+    let finalR = Math.floor(trueSun / 1800);
+    let remFinal = trueSun - (finalR * 1800);
+    let finalO = Math.floor(remFinal / 60);
+    let finalL = remFinal - (finalO * 60);
+    return { rasi: finalR, degree: finalO, lipda: finalL, meanSunL: meanSunLipda, kammasapP: Kammasapp };
+}
+
+function calculateMoon(HORAKHUN, meanSunLipdaM, hour, minute) {
+    let timeFraction = (hour + minute / 60) / 24;
+    let timePart = Math.floor(timeFraction * 703);
+    let masNum = (HORAKHUN * 703) + 650 + timePart;
+    let mas = Math.floor(masNum / 20760);
+    let avaman_score = masNum - (mas * 20760);
+    let dithi = Math.floor(avaman_score / 692);
+    let avaman = avaman_score - (dithi * 692);
+    let meanMoon = (dithi * 720) + Math.floor(1.04 * avaman) - 40 + meanSunLipdaM;
+    meanMoon = meanMoon % 21600;
+    let uch_rem = (HORAKHUN - 621) % 3232;
+    let meanUch = Math.floor(((uch_rem + timeFraction) * 21600) / 3232) + 2;
+    meanUch = meanUch % 21600;
+    let angleA = meanMoon - meanUch; if (angleA < 0) angleA += 21600;
+    let P, sign;
+    if (angleA <= 5400) { P = angleA; sign = -1; }
+    else if (angleA <= 10800) { P = 10800 - angleA; sign = -1; }
+    else if (angleA <= 16200) { P = angleA - 10800; sign = 1; }
+    else { P = 21600 - angleA; sign = 1; }
+    const MOON_TABLE = [0, 77, 148, 209, 256, 286, 296];
+    let step = 900;
+    let idx = Math.floor(P / step);
+    if (idx >= MOON_TABLE.length - 1) idx = MOON_TABLE.length - 2;
+    let remainder = P - (idx * step);
+    let base = MOON_TABLE[idx];
+    let next = MOON_TABLE[idx + 1];
+    let correction = Math.floor(base + (remainder * (next - base) / step));
+    let trueMoon = meanMoon + (correction * sign);
+    trueMoon = (trueMoon % 21600 + 21600) % 21600;
+    let r = Math.floor(trueMoon / 1800);
+    let rem = trueMoon - (r * 1800);
+    let o = Math.floor(rem / 60);
+    let l = rem - (o * 60);
+    return { rasi: r, degree: o, lipda: l };
+}
+
+function calculateKamlangRavi(meanSunLipda, sunKam, chulaSakarat) {
+    let meanRavi = meanSunLipda - 23;
+    meanRavi = (meanRavi % 21600 + 21600) % 21600;
+    let sarupAppa = (sunKam < 364) ? chulaSakarat - 611 : chulaSakarat - 610;
+    let kamlang = (sarupAppa * 21600) + meanRavi;
+    return { meanRavi, sarupAppa, kamlang };
+}
+
+// [Include all other calculateMars, calculateMercury, calculateJupiter, 
+//  calculateVenus, calculateSaturn, calculateRahu, calculateKetu, 
+//  calculateUranus, calculateAsc functions here - same as previous code]
+
+// For brevity in this response, I'll include a placeholder comment
+// In the actual file, paste all the calculation functions from the previous code
+
+function calculateMars(kamlang, meanRavi) {
+    // [Paste the full calculateMars function from previous code]
+    const INT = Math.floor;
+    const TABLE = [0, 244, 427, 488];
+    const DATA = { d0:1, d1:2, d2:16, d3:505, d4:5420, d5:7620, d6:2700, d7:4/15 };
+    let baseTop = INT((kamlang * DATA.d0) / DATA.d1);
+    let baseBottom = INT((kamlang * DATA.d2) / DATA.d3);
+    let meanMars = (baseTop + baseBottom + DATA.d4) % 21600;
+    let angleA = meanMars - DATA.d5; angleA = (angleA % 21600 + 21600) % 21600;
+    let P, signP;
+    if (angleA <= 5400) { P = angleA; signP = -1; }
+    else if (angleA <= 10800) { P = 10800 - angleA; signP = -1; }
+    else if (angleA <= 16200) { P = angleA - 10800; signP = 1; }
+    else { P = 21600 - angleA; signP = 1; }
+    function interpolatePhuj(val) {
+        let U = INT(val / 1800); let fraction = (val / 1800) - U;
+        let Y = TABLE[U]; let Ynext = TABLE[U+1] || Y;
+        return INT((fraction * (Ynext - Y) + Y) * 60);
+    }
+    let monPhuj = interpolatePhuj(P);
+    let K = 5400 - P; let signK;
+    if (angleA <= 5400) signK = 1; else if (angleA <= 10800) signK = -1;
+    else if (angleA <= 16200) signK = -1; else signK = 1;
+    function interpolateKo(val) {
+        let U = INT(val / 1800); let fraction = (val / 1800) - U;
+        let Y = TABLE[U]; let Ynext = TABLE[U+1] || Y;
+        return INT(fraction * (Ynext - Y) + Y + 0.5);
+    }
+    let monKo = interpolateKo(K); let koPhon = INT(monKo / 2);
+    let monChet = DATA.d6 + (koPhon * signK);
+    let phon = INT((monPhuj * 60) / monChet);
+    let monSom = meanMars + (phon * signP); monSom = (monSom % 21600 + 21600) % 21600;
+    let angleA2 = monSom - meanRavi; angleA2 = (angleA2 % 21600 + 21600) % 21600;
+    let P2, signP2;
+    if (angleA2 <= 5400) { P2 = angleA2; signP2 = -1; }
+    else if (angleA2 <= 10800) { P2 = 10800 - angleA2; signP2 = -1; }
+    else if (angleA2 <= 16200) { P2 = angleA2 - 10800; signP2 = 1; }
+    else { P2 = 21600 - angleA2; signP2 = 1; }
+    let K2 = 5400 - P2; let signK2;
+    if (angleA2 <= 5400) signK2 = 1; else if (angleA2 <= 10800) signK2 = -1;
+    else if (angleA2 <= 16200) signK2 = -1; else signK2 = 1;
+    let singPhuj = interpolatePhuj(P2); let singKo = interpolateKo(K2);
+    let singPhon = INT((INT(singPhuj / 60) + 0.5) / 3);
+    let monPhayat = INT(monChet * DATA.d7);
+    let somPhayat = singPhon + monPhayat;
+    let singSomChet = somPhayat + (singKo * signK2);
+    let mahaPhon = INT((singPhuj * 60) / singSomChet);
+    let trueMars = monSom + (mahaPhon * signP2);
+    trueMars = (trueMars % 21600 + 21600) % 21600;
+    let rasi = INT(trueMars / 1800); let rem = trueMars % 1800;
+    let degree = INT(rem / 60); let lipda = rem % 60;
+    return { rasi, degree, lipda };
+}
+
+// [Add calculateMercury, calculateJupiter, calculateVenus, calculateSaturn, 
+//  calculateRahu, calculateKetu, calculateUranus, calculateAsc here]
+// Same pattern as above - copy from previous complete code
+
+function calculateMercury(kamlang, meanRavi) {
+    // [Full function from previous code]
+    const INT = Math.floor; const TABLE = [0, 244, 427, 488];
+    const DATA = { d0:7, d1:46, d2:4, d3:1, d4:10642, d5:13200, d6:6000, d7:21 };
+    let baseTop = INT((kamlang * DATA.d0) / DATA.d1);
+    let baseBottom = INT((kamlang * DATA.d2) / DATA.d3);
+    let meanMercury = (baseTop + baseBottom + DATA.d4) % 21600;
+    let angleA = meanRavi - DATA.d5; angleA = (angleA % 21600 + 21600) % 21600;
+    let P, signP;
+    if (angleA <= 5400) { P = angleA; signP = -1; }
+    else if (angleA <= 10800) { P = 10800 - angleA; signP = -1; }
+    else if (angleA <= 16200) { P = angleA - 10800; signP = 1; }
+    else { P = 21600 - angleA; signP = 1; }
+    function interpolatePhuj(val) {
+        let U = INT(val / 1800); let fraction = (val / 1800) - U;
+        let Y = TABLE[U]; let Ynext = TABLE[U+1] || Y;
+        return INT((fraction * (Ynext - Y) + Y) * 60);
+    }
+    let monPhuj = interpolatePhuj(P);
+    let K = 5400 - P; let signK;
+    if (angleA <= 5400) signK = 1; else if (angleA <= 10800) signK = -1;
+    else if (angleA <= 16200) signK = -1; else signK = 1;
+    function interpolateKo(val) {
+        let U = INT(val / 1800); let fraction = (val / 1800) - U;
+        let Y = TABLE[U]; let Ynext = TABLE[U+1] || Y;
+        return INT(fraction * (Ynext - Y) + Y + 0.5);
+    }
+    let monKo = interpolateKo(K); let koPhon = INT(monKo / 2);
+    let monChet = DATA.d6 + (koPhon * signK);
+    let phon = INT((monPhuj * 60) / monChet);
+    let monSom = meanRavi + (phon * signP); monSom = (monSom % 21600 + 21600) % 21600;
+    let angleA2 = monSom - meanMercury; angleA2 = (angleA2 % 21600 + 21600) % 21600;
+    let P2, signP2;
+    if (angleA2 <= 5400) { P2 = angleA2; signP2 = -1; }
+    else if (angleA2 <= 10800) { P2 = 10800 - angleA2; signP2 = -1; }
+    else if (angleA2 <= 16200) { P2 = angleA2 - 10800; signP2 = 1; }
+    else { P2 = 21600 - angleA2; signP2 = 1; }
+    let K2 = 5400 - P2; let signK2;
+    if (angleA2 <= 5400) signK2 = 1; else if (angleA2 <= 10800) signK2 = -1;
+    else if (angleA2 <= 16200) signK2 = -1; else signK2 = 1;
+    let singPhuj = interpolatePhuj(P2); let singKo = interpolateKo(K2);
+    let singPhon = INT(INT((singPhuj / 60) + 0.5) / 3);
+    let monPhayat = 60 * DATA.d7;
+    let somPhayat = singPhon + monPhayat;
+    let singSomChet = somPhayat + (singKo * signK2);
+    let mahaPhon = INT((singPhuj * 60) / singSomChet);
+    let trueMercury = monSom + (mahaPhon * signP2);
+    trueMercury = (trueMercury % 21600 + 21600) % 21600;
+    let rasi = INT(trueMercury / 1800); let rem = trueMercury % 1800;
+    let degree = INT(rem / 60); let lipda = rem % 60;
+    return { rasi, degree, lipda };
+}
+
+function calculateJupiter(kamlang, meanRavi) {
+    const INT = Math.floor; const TABLE = [0, 244, 427, 488];
+    const DATA = { d0:1, d1:12, d2:1, d3:1032, d4:14297, d5:10320, d6:5520, d7:3/7 };
+    let baseTop = INT((kamlang * DATA.d0) / DATA.d1);
+    let baseBottom = INT((kamlang * DATA.d2) / DATA.d3);
+    let meanJupiter = (baseTop + baseBottom + DATA.d4) % 21600;
+    let angleA = meanJupiter - DATA.d5; angleA = (angleA % 21600 + 21600) % 21600;
+    let P, signP;
+    if (angleA <= 5400) { P = angleA; signP = -1; }
+    else if (angleA <= 10800) { P = 10800 - angleA; signP = -1; }
+    else if (angleA <= 16200) { P = angleA - 10800; signP = 1; }
+    else { P = 21600 - angleA; signP = 1; }
+    function interpolatePhuj(val) {
+        let U = INT(val / 1800); let fraction = (val / 1800) - U;
+        let Y = TABLE[U]; let Ynext = TABLE[U+1] || Y;
+        return INT((fraction * (Ynext - Y) + Y) * 60);
+    }
+    let monPhuj = interpolatePhuj(P);
+    let K = 5400 - P; let signK;
+    if (angleA <= 5400) signK = 1; else if (angleA <= 10800) signK = -1;
+    else if (angleA <= 16200) signK = -1; else signK = 1;
+    function interpolateKo(val) {
+        let U = INT(val / 1800); let fraction = (val / 1800) - U;
+        let Y = TABLE[U]; let Ynext = TABLE[U+1] || Y;
+        return INT(fraction * (Ynext - Y) + Y + 0.5);
+    }
+    let monKo = interpolateKo(K); let koPhon = INT(monKo / 2);
+    let monChet = DATA.d6 + (koPhon * signK);
+    let phon = INT((monPhuj * 60) / monChet);
+    let monSom = meanJupiter + (phon * signP); monSom = (monSom % 21600 + 21600) % 21600;
+    let angleA2 = monSom - meanRavi; angleA2 = (angleA2 % 21600 + 21600) % 21600;
+    let P2, signP2;
+    if (angleA2 <= 5400) { P2 = angleA2; signP2 = -1; }
+    else if (angleA2 <= 10800) { P2 = 10800 - angleA2; signP2 = -1; }
+    else if (angleA2 <= 16200) { P2 = angleA2 - 10800; signP2 = 1; }
+    else { P2 = 21600 - angleA2; signP2 = 1; }
+    let K2 = 5400 - P2; let signK2;
+    if (angleA2 <= 5400) signK2 = 1; else if (angleA2 <= 10800) signK2 = -1;
+    else if (angleA2 <= 16200) signK2 = -1; else signK2 = 1;
+    let singPhuj = interpolatePhuj(P2); let singKo = interpolateKo(K2);
+    let singPhon = INT((INT(singPhuj / 60) + 0.5) / 3);
+    let monPhayat = INT(monChet * DATA.d7);
+    let somPhayat = singPhon + monPhayat;
+    let singSomChet = somPhayat + (singKo * signK2);
+    let mahaPhon = INT((singPhuj * 60) / singSomChet);
+    let trueJupiter = monSom + (mahaPhon * signP2);
+    trueJupiter = (trueJupiter % 21600 + 21600) % 21600;
+    let rasi = INT(trueJupiter / 1800); let rem = trueJupiter % 1800;
+    let degree = INT(rem / 60); let lipda = rem % 60;
+    return { rasi, degree, lipda };
+}
+
+function calculateVenus(KAMLANG, MEAN_RAVI) {
+    const PLANET_TABLE = [0, 244, 427, 488];
+    const DATA = [5, 3, 10, 243, 10944, 4800, 19200, 11];
+    const INT = Math.floor;
+    let base1 = INT((KAMLANG * DATA[0]) / DATA[1]);
+    let base2 = INT((KAMLANG * DATA[2]) / DATA[3]);
+    let meanVenus = (base1 - base2 + DATA[4]) % 21600;
+    let angleA = MEAN_RAVI - DATA[5]; if (angleA < 0) angleA += 21600;
+    let P, signP;
+    if (angleA <= 5400) { P = angleA; signP = -1; }
+    else if (angleA <= 10800) { P = 10800 - angleA; signP = -1; }
+    else if (angleA <= 16200) { P = angleA - 10800; signP = 1; }
+    else { P = 21600 - angleA; signP = 1; }
+    let K = 5400 - P; let signK;
+    if (angleA <= 5400) signK = 1; else if (angleA <= 10800) signK = -1;
+    else if (angleA <= 16200) signK = -1; else signK = 1;
+    let U = INT(P / 1800); let rem = (P / 1800) - U;
+    let Y = PLANET_TABLE[U]; let Ynext = PLANET_TABLE[U + 1] || Y;
+    let m_phuj = INT((rem * (Ynext - Y) + Y) * 60);
+    let U2 = INT(K / 1800); let rem2 = (K / 1800) - U2;
+    let Y2 = PLANET_TABLE[U2]; let Ynext2 = PLANET_TABLE[U2 + 1] || Y2;
+    let m_ko = INT((rem2 * (Ynext2 - Y2) + Y2) + 0.5);
+    let ko_phon = INT(m_ko / 2);
+    let m_chet = DATA[6] + (ko_phon * signK);
+    let phon = INT((m_phuj * 60) / m_chet);
+    let montha = MEAN_RAVI + (phon * signP); if (montha < 0) montha += 21600; montha %= 21600;
+    let angleA2 = montha - meanVenus; if (angleA2 < 0) angleA2 += 21600;
+    let P2, signP2;
+    if (angleA2 <= 5400) { P2 = angleA2; signP2 = -1; }
+    else if (angleA2 <= 10800) { P2 = 10800 - angleA2; signP2 = -1; }
+    else if (angleA2 <= 16200) { P2 = angleA2 - 10800; signP2 = 1; }
+    else { P2 = 21600 - angleA2; signP2 = 1; }
+    let K2 = 5400 - P2; let signK2;
+    if (angleA2 <= 5400) signK2 = 1; else if (angleA2 <= 10800) signK2 = -1;
+    else if (angleA2 <= 16200) signK2 = -1; else signK2 = 1;
+    let U3 = INT(P2 / 1800); let rem3 = (P2 / 1800) - U3;
+    let Y3 = PLANET_TABLE[U3]; let Ynext3 = PLANET_TABLE[U3 + 1] || Y3;
+    let s_phuj = INT((rem3 * (Ynext3 - Y3) + Y3) * 60);
+    let U4 = INT(K2 / 1800); let rem4 = (K2 / 1800) - U4;
+    let Y4 = PLANET_TABLE[U4]; let Ynext4 = PLANET_TABLE[U4 + 1] || Y4;
+    let s_ko = INT((rem4 * (Ynext4 - Y4) + Y4) + 0.5);
+    let s_phon = INT((INT(s_phuj / 60) + 0.5) / 3);
+    let m_phayat = 60 * DATA[7];
+    let som_phayat = s_phon + m_phayat;
+    let s_som_chet = som_phayat + (s_ko * signK2);
+    let mahaPhon = INT((s_phuj * 60) / s_som_chet);
+    let trueVenus = montha + (mahaPhon * signP2); if (trueVenus < 0) trueVenus += 21600; trueVenus %= 21600;
+    let r = INT(trueVenus / 1800); let remF = trueVenus % 1800;
+    let o = INT(remF / 60); let l = remF % 60;
+    return { rasi: r, degree: o, lipda: l };
+}
+
+function calculateSaturn(KAMLANG, MEAN_RAVI) {
+    const TABLE = [0, 244, 427, 488];
+    const DATA = [1, 30, 6, 10000, 11944, 14820, 3780, 7/6];
+    const INT = Math.floor;
+    let base1 = INT((KAMLANG * DATA[0]) / DATA[1]);
+    let base2 = INT((KAMLANG * DATA[2]) / DATA[3]);
+    let meanSaturn = (base1 + base2 + DATA[4]) % 21600;
+    let angleA = meanSaturn - DATA[5]; if (angleA < 0) angleA += 21600;
+    let P, signP;
+    if (angleA <= 5400) { P = angleA; signP = -1; }
+    else if (angleA <= 10800) { P = 10800 - angleA; signP = -1; }
+    else if (angleA <= 16200) { P = angleA - 10800; signP = 1; }
+    else { P = 21600 - angleA; signP = 1; }
+    let K = 5400 - P; let signK;
+    if (angleA <= 5400) signK = 1; else if (angleA <= 10800) signK = -1;
+    else if (angleA <= 16200) signK = -1; else signK = 1;
+    let U = INT(P / 1800); let rem = (P / 1800) - U;
+    let Y = TABLE[U]; let Ynext = TABLE[U + 1] || Y;
+    let m_phuj = INT((rem * (Ynext - Y) + Y) * 60);
+    let U2 = INT(K / 1800); let rem2 = (K / 1800) - U2;
+    let Y2 = TABLE[U2]; let Ynext2 = TABLE[U2 + 1] || Y2;
+    let m_ko = INT((rem2 * (Ynext2 - Y2) + Y2) + 0.5);
+    let ko_phon = INT(m_ko / 2);
+    let m_chet = DATA[6] + (ko_phon * signK);
+    let phon = INT((m_phuj * 60) / m_chet);
+    let montha = meanSaturn + (phon * signP); if (montha < 0) montha += 21600; montha %= 21600;
+    let angleA2 = montha - MEAN_RAVI; if (angleA2 < 0) angleA2 += 21600;
+    let P2, signP2;
+    if (angleA2 <= 5400) { P2 = angleA2; signP2 = -1; }
+    else if (angleA2 <= 10800) { P2 = 10800 - angleA2; signP2 = -1; }
+    else if (angleA2 <= 16200) { P2 = angleA2 - 10800; signP2 = 1; }
+    else { P2 = 21600 - angleA2; signP2 = 1; }
+    let K2 = 5400 - P2; let signK2;
+    if (angleA2 <= 5400) signK2 = 1; else if (angleA2 <= 10800) signK2 = -1;
+    else if (angleA2 <= 16200) signK2 = -1; else signK2 = 1;
+    let U3 = INT(P2 / 1800); let rem3 = (P2 / 1800) - U3;
+    let Y3 = TABLE[U3]; let Ynext3 = TABLE[U3 + 1] || Y3;
+    let s_phuj = INT((rem3 * (Ynext3 - Y3) + Y3) * 60);
+    let U4 = INT(K2 / 1800); let rem4 = (K2 / 1800) - U4;
+    let Y4 = TABLE[U4]; let Ynext4 = TABLE[U4 + 1] || Y4;
+    let s_ko = INT((rem4 * (Ynext4 - Y4) + Y4) + 0.5);
+    let s_phon = INT((INT(s_phuj / 60) + 0.5) / 3);
+    let m_phayat = INT(m_chet * DATA[7]);
+    let som_phayat = s_phon + m_phayat;
+    let s_som_chet = som_phayat + (s_ko * signK2);
+    let mahaPhon = INT((s_phuj * 60) / s_som_chet);
+    let trueSaturn = montha + (mahaPhon * signP2); if (trueSaturn < 0) trueSaturn += 21600; trueSaturn %= 21600;
+    let r = INT(trueSaturn / 1800); let remF = trueSaturn % 1800;
+    let o = INT(remF / 60); let l = remF % 60;
+    return { rasi: r, degree: o, lipda: l };
+}
+
+function calculateRahu(KAMLANG) {
+    const INT = Math.floor;
+    let base1 = INT(KAMLANG / 20);
+    let base2 = INT(KAMLANG / 265);
+    let meanRahu = base1 + base2; meanRahu = meanRahu % 21600;
+    let trueRahu = 15150 - meanRahu; if (trueRahu < 0) trueRahu += 21600; trueRahu = trueRahu % 21600;
+    let r = INT(trueRahu / 1800); let rem = trueRahu - (r * 1800);
+    let o = INT(rem / 60); let l = rem - (o * 60);
+    return { rasi: r, degree: o, lipda: l, meanRahu: meanRahu };
+}
+
+function calculateKetu(HORAKHUN, hour, minute) {
+    const INT = Math.floor;
+    let timeFraction = (hour + (minute / 60)) / 24;
+    let phon_ketu = (HORAKHUN - 344) % 679;
+    let mean_Ketu = INT(((phon_ketu + timeFraction) * 21600) / 679);
+    let trueKetu = 21600 - mean_Ketu; if (trueKetu >= 21600) trueKetu -= 21600;
+    let r = INT(trueKetu / 1800); let rem = trueKetu - (r * 1800);
+    let o = INT(rem / 60); let l = rem - (o * 60);
+    return { rasi: r, degree: o, lipda: l };
+}
+
+function calculateUranus(KAMLANG, MEAN_RAVI) {
+    const DATA = [1, 84, 1, 7224, 16277, 7440, 38640, 3/7];
+    const TABLE = [0, 244, 427, 488]; const INT = Math.floor;
+    let base1 = INT((KAMLANG * DATA[0]) / DATA[1]);
+    let base2 = INT((KAMLANG * DATA[2]) / DATA[3]);
+    let meanPlanet = (base1 + base2 + DATA[4]) % 21600;
+    let angleA = meanPlanet - DATA[5]; if (angleA < 0) angleA += 21600;
+    let P, signP;
+    if (angleA <= 5400) { P = angleA; signP = -1; }
+    else if (angleA <= 10800) { P = 10800 - angleA; signP = -1; }
+    else if (angleA <= 16200) { P = angleA - 10800; signP = 1; }
+    else { P = 21600 - angleA; signP = 1; }
+    let K = 5400 - P; let signK;
+    if (angleA <= 5400) signK = 1; else if (angleA <= 10800) signK = -1;
+    else if (angleA <= 16200) signK = -1; else signK = 1;
+    let U = INT(P / 1800); let Yu = TABLE[U]; let Yu1 = TABLE[U + 1] || Yu;
+    let mandaphuj = INT((((P / 1800) - U) * (Yu1 - Yu) + Yu) * 60);
+    let U2 = INT(K / 1800); let Yu2 = TABLE[U2]; let Yu21 = TABLE[U2 + 1] || Yu2;
+    let mandakot = INT(((K / 1800 - U2) * (Yu21 - Yu2)) + Yu2 + 0.5);
+    let kotPhon = INT(mandakot / 2);
+    let mandaChet = DATA[6] + (kotPhon * signK);
+    let phon = INT((mandaphuj * 60) / mandaChet);
+    let mandaSom = meanPlanet + (phon * signP); mandaSom = (mandaSom % 21600 + 21600) % 21600;
+    let angleA2 = mandaSom - MEAN_RAVI; if (angleA2 < 0) angleA2 += 21600;
+    let P2, signP2;
+    if (angleA2 <= 5400) { P2 = angleA2; signP2 = -1; }
+    else if (angleA2 <= 10800) { P2 = 10800 - angleA2; signP2 = -1; }
+    else if (angleA2 <= 16200) { P2 = angleA2 - 10800; signP2 = 1; }
+    else { P2 = 21600 - angleA2; signP2 = 1; }
+    let K2 = 5400 - P2; let signK2;
+    if (angleA2 <= 5400) signK2 = 1; else if (angleA2 <= 10800) signK2 = -1;
+    else if (angleA2 <= 16200) signK2 = -1; else signK2 = 1;
+    let U3 = INT(P2 / 1800); let Yu3 = TABLE[U3]; let Yu31 = TABLE[U3 + 1] || Yu3;
+    let singhaPhuj = INT((((P2 / 1800) - U3) * (Yu31 - Yu3) + Yu3) * 60);
+    let U4 = INT(K2 / 1800); let Yu4 = TABLE[U4]; let Yu41 = TABLE[U4 + 1] || Yu4;
+    let singhaKot = INT(((K2 / 1800 - U4) * (Yu41 - Yu4)) + Yu4 + 0.5);
+    let singhaPhon = INT((INT(singhaPhuj / 60) + 0.5) / 3);
+    let mandaPayat = INT(mandaChet * DATA[7]);
+    let somPayat = singhaPhon + mandaPayat;
+    let singhaSomChet = somPayat + (singhaKot * signK2);
+    let mahaPhon = INT((singhaPhuj * 60) / singhaSomChet);
+    let truePlanet = mandaSom + (mahaPhon * signP2); truePlanet = (truePlanet % 21600 + 21600) % 21600;
+    let r = INT(truePlanet / 1800); let rem = truePlanet % 1800;
+    let o = INT(rem / 60); let l = rem % 60;
+    return { rasi: r, degree: o, lipda: l };
+}
+
+function calculateAsc(sunDeg, hour, minute) {
+    const INT = Math.floor;
+    const sun_up_h = 6; const sun_up_min = 0;
+    const ASCENSION_TABLE = [120,96,72,120,144,168,168,144,120,72,96,120];
+    let antornatee = ((hour - sun_up_h)*60 + minute - sun_up_min)*60;
+    let i = sunDeg.rasi;
+    let at_start = ASCENSION_TABLE[i];
+    let at_min_lip = (30*60) - (sunDeg.degree * 60) - sunDeg.lipda;
+    let at_min_t_sec = at_min_lip * (at_start/30);
+    let Time_i = antornatee - at_min_t_sec;
+    while(Time_i > 0) {
+        antornatee = Time_i;
+        i = i + 1;
+        Time_i = Time_i - ASCENSION_TABLE[i % 12] * 60;
+    }
+    let m_table = ASCENSION_TABLE[i % 12] / 30;
+    let rem_at_de = (antornatee / 60) / m_table;
+    let r = i % 12; let o = INT(rem_at_de); let l = INT((rem_at_de - o) * 60);
+    return { rasi: r, degree: o, lipda: l };
+}
+
+// ==================== Initialize ====================
+window.addEventListener('DOMContentLoaded', () => {
+    // Set today's date as default
+    const today = new Date();
+    const currentYear = today.getFullYear() + 543;
+    const currentMonth = today.getMonth() + 1;
+    const currentDay = today.getDate();
+    
+    document.getElementById('year').value = currentYear;
+    document.getElementById('month').value = currentMonth;
+    document.getElementById('day').value = currentDay;
+    
+    // Auto calculate on load
+    onCalculateClick();
+});
+</script>
+
+</body>
+</html>
