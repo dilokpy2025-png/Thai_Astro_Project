@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>โปรแกรมวิเคราะห์ชื่อ-นามสกุล ฮวงจุ้ยไทย</title>
+    <style>
+        :root { --primary: #2c3e50; --secondary: #3498db; --accent: #e74c3c; --success: #38a169; }
+        body { font-family: 'Chakra Petch', sans-serif; background-color: #f7fafc; padding: 20px; color: var(--primary); }
+        .container { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 800px; margin: auto; }
+        h2 { text-align: center; color: var(--primary); margin-bottom: 25px; border-bottom: 4px solid var(--secondary); padding-bottom: 10px; }
+        .input-group { display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px; }
+        label { font-weight: bold; margin-bottom: -10px; }
+        select, input { width: 100%; padding: 12px; border: 2px solid #edf2f7; border-radius: 10px; font-size: 16px; transition: 0.3s; }
+        input:focus { border-color: var(--secondary); outline: none; }
+        button { width: 100%; padding: 15px; background: var(--secondary); color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 18px; font-weight: bold; transition: 0.3s; }
+        button:hover { background: #2980b9; transform: translateY(-2px); }
+        
+        .result-section { margin-top: 30px; display: none; }
+        .table-container { margin-bottom: 30px; overflow-x: auto; }
+        h3 { border-left: 5px solid var(--secondary); padding-left: 10px; margin-bottom: 15px; background: #f8f9fa; padding: 10px; border-radius: 0 10px 10px 0; }
+        
+        table { width: 100%; border-collapse: collapse; background: white; }
+        th, td { border: 1px solid #edf2f7; padding: 12px; text-align: center; }
+        th { background: #f1f5f9; color: #4a5568; }
+        
+        .total-badge { font-size: 20px; font-weight: bold; color: var(--accent); background: #fff5f5; padding: 10px; border-radius: 10px; display: inline-block; margin-top: 10px; border: 1px solid #feb2b2; }
+        .category-tag { padding: 4px 8px; border-radius: 6px; font-size: 13px; color: white; font-weight: bold; }
+        .kalakini { background: var(--accent); }
+        .good { background: var(--success); }
+        .neutral { background: #a0aec0; }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="container">
+    <h2>วิเคราะห์ชื่อ-นามสกุล ชัยภูมิศาสตร์</h2>
+    
+    <div class="input-group">
+        <label>เลือกวันเกิด</label>
+        <select id="birthDay">
+            <option value="0">วันอาทิตย์</option>
+            <option value="1">วันจันทร์</option>
+            <option value="2">วันอังคาร</option>
+            <option value="3">วันพุธ (กลางวัน)</option>
+            <option value="4">วันเสาร์</option>
+            <option value="5">วันพฤหัสบดี</option>
+            <option value="6">วันพุธ (กลางคืน/ราหู)</option>
+            <option value="7">วันศุกร์</option>
+        </select>
+
+        <label>ชื่อ</label>
+        <input type="text" id="firstName" placeholder="กรอกชื่อที่นี่">
+
+        <label>นามสกุล</label>
+        <input type="text" id="lastName" placeholder="กรอกนามสกุลที่นี่">
+    </div>
+    
+    <button onclick="analyzeAll()">คำนวณและวิเคราะห์</button>
+
+    <div id="result" class="result-section">
+        <div class="table-container">
+            <h3>วิเคราะห์ชื่อ: <span id="resFirstName"></span></h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ตัวอักษร</th>
+                        <th>พลังดาว</th>
+                        <th>ชื่อดวงดาว</th>
+                        <th>หมวดทักษา</th>
+                    </tr>
+                </thead>
+                <tbody id="nameTable"></tbody>
+            </table>
+            <div class="total-badge" id="totalName"></div>
+        </div>
+
+        <div class="table-container">
+            <h3>วิเคราะห์นามสกุล: <span id="resLastName"></span></h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ตัวอักษร</th>
+                        <th>พลังดาว</th>
+                        <th>ชื่อดวงดาว</th>
+                        <th>หมวดทักษา</th>
+                    </tr>
+                </thead>
+                <tbody id="surnameTable"></tbody>
+            </table>
+            <div class="total-badge" id="totalSurname"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const starInfo = {
+        1: "ดาวอาทิตย์", 2: "ดาวจันทร์", 3: "ดาวอังคาร", 4: "ดาวพุธ",
+        5: "ดาวพฤหัสบดี", 6: "ดาวศุกร์", 7: "ดาวเสาร์", 8: "ดาวราหู", 9: "ดาวเกตุ"
+    };
+
+    const starMap = {
+        'ก':1,'ด':1,'ถ':1,'ท':1,'ภ':1,'ฤ':1,'ฤๅ':1,'ำ':1,'า':1,'ุ':1,'่':1,'A':1,'I':1,'J':1,'Q':1,'Y':1,
+        'ข':2,'บ':2,'ป':2,'ง':2,'ช':2,'เ':2,'แ':2,'ู':2,'้':2,'B':2,'K':2,'R':2,
+        'ต':3,'ฑ':3,'ฒ':3,'ม':3,'๋':3,'C':3,'G':3,'L':3,'S':3,
+        'ค':4,'ธ':4,'ร':4,'ญ':4,'ษ':4,'ะ':4,'ิ':4,'โ':4,'ั':4,'D':4,'M':4,'T':4,
+        'ฉ':5,'ณ':5,'ฌ':5,'น':5,'ห':5,'ฮ':5,'ฎ':5,'ฬ':5,'ี':5,'E':5,'H':5,'N':5,'X':5,
+        'จ':6,'ล':6,'ว':6,'อ':6,'ใ':6,'U':6,'V':6,'W':6,
+        'ซ':7,'ศ':7,'ส':7,'ึ':7,'ื':7,'๊':7,'O':7,'Z':7,
+        'ย':8,'ผ':8,'ฝ':8,'พ':8,'ฟ':8,'็':8,'F':8,'P':8,
+        'ฏ':9,'ฐ':9,'ไ':9,'์':9
+    };
+
+    const thaksaGroups = [
+        { name: "อาทิตย์", chars: "ะ า ิ ี ุ ู เ โ ะ" },
+        { name: "จันทร์", chars: "ก ข ค ง" },
+        { name: "อังคาร", chars: "จ ฉ ช ซ ฌ ญ" },
+        { name: "พุธกลางวัน", chars: "ฎ ฏ ฐ ฑ ฒ ณ" },
+        { name: "เสาร์", chars: "ด ต ถ ท ธ น" },
+        { name: "พฤหัสบดี", chars: "บ ป ผ ฝ พ ฟ ภ ม" },
+        { name: "พุธกลางคืน", chars: "ย ร ล ว" },
+        { name: "ศุกร์", chars: "ศ ษ ส ห ฬ ฮ" }
+    ];
+
+    const thaksaNames = ["บริวาร", "อายุ", "เดช", "ศรี", "มูละ", "อุตสาหะ", "มนตรี", "กาลกิณี"];
+
+    function getThaksaCategory(char, birthDayIdx) {
+        let charGroupIdx = -1;
+        for(let i=0; i<8; i++) {
+            if(thaksaGroups[i].chars.split(' ').some(c => char.includes(c))) { charGroupIdx = i; break; }
+        }
+        if(charGroupIdx === -1) return "-";
+        let pos = (charGroupIdx - birthDayIdx + 8) % 8;
+        return thaksaNames[pos];
+    }
+
+    function generateTableRows(text, birthDayIdx) {
+        let total = 0;
+        let rows = "";
+        Array.from(text).forEach(char => {
+            if(char === " ") return;
+            const val = starMap[char] || 0;
+            const starName = starInfo[val] || "-";
+            const cat = getThaksaCategory(char, birthDayIdx);
+            total += val;
+
+            let badgeClass = "neutral";
+            if(cat === "กาลกิณี") badgeClass = "kalakini";
+            else if(["เดช","ศรี","มนตรี"].includes(cat)) badgeClass = "good";
+
+            rows += `<tr>
+                <td><strong>${char}</strong></td>
+                <td>${val || '-'}</td>
+                <td>${starName}</td>
+                <td><span class="category-tag ${badgeClass}">${cat}</span></td>
+            </tr>`;
+        });
+        return { rows, total };
+    }
+
+    function analyzeAll() {
+        const fName = document.getElementById('firstName').value.trim();
+        const lName = document.getElementById('lastName').value.trim();
+        const birthDayIdx = parseInt(document.getElementById('birthDay').value);
+
+        if(!fName && !lName) { alert("กรุณากรอกชื่อหรือนามสกุล"); return; }
+
+        const nameRes = generateTableRows(fName, birthDayIdx);
+        const surnameRes = generateTableRows(lName, birthDayIdx);
+
+        document.getElementById('resFirstName').innerText = fName;
+        document.getElementById('nameTable').innerHTML = nameRes.rows;
+        document.getElementById('totalName').innerText = `ผลรวมชื่อ: ${nameRes.total}`;
+
+        document.getElementById('resLastName').innerText = lName;
+        document.getElementById('surnameTable').innerHTML = surnameRes.rows;
+        document.getElementById('totalSurname').innerText = `ผลรวมนามสกุล: ${surnameRes.total}`;
+
+        document.getElementById('result').style.display = "block";
+    }
+</script>
+
+</body>
+</html>
