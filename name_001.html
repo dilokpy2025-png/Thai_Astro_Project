@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>วิเคราะห์ชื่อตามหลักทักษาและพลังดวงดาว</title>
+    <style>
+        :root { --primary: #2c3e50; --secondary: #3498db; --accent: #e74c3c; }
+        body { font-family: 'Chakra Petch', sans-serif; background-color: #f0f2f5; padding: 20px; color: var(--primary); }
+        .container { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 600px; margin: auto; }
+        h2 { text-align: center; color: var(--primary); margin-bottom: 20px; border-bottom: 3px solid var(--secondary); padding-bottom: 10px; }
+        label { font-weight: bold; display: block; margin-top: 15px; }
+        select, input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
+        button { width: 100%; padding: 15px; background: var(--secondary); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 18px; font-weight: bold; margin-top: 10px; }
+        button:hover { background: #2980b9; }
+        #result { margin-top: 25px; display: none; border-top: 2px solid #eee; padding-top: 20px; }
+        .grid-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .grid-table th, .grid-table td { border: 1px solid #eee; padding: 10px; text-align: center; }
+        .grid-table th { background: #f8f9fa; }
+        .total-box { font-size: 24px; text-align: center; color: var(--accent); margin: 20px 0; padding: 15px; background: #fff5f5; border-radius: 10px; border: 1px solid #feb2b2; }
+        .category-tag { padding: 2px 8px; border-radius: 4px; font-size: 12px; color: white; font-weight: bold; }
+        .kalakini { background: #e53e3e; } /* กาลกิณี - สีแดง */
+        .good { background: #38a169; } /* หมวดดี - สีเขียว */
+        .neutral { background: #718096; } /* ทั่วไป - สีเทา */
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="container">
+    <h2>วิเคราะห์ชื่อครบวงจร</h2>
+    
+    <label>1. เลือกวันเกิด (ตามหลักไทย)</label>
+    <select id="birthDay">
+        <option value="0">วันอาทิตย์</option>
+        <option value="1">วันจันทร์</option>
+        <option value="2">วันอังคาร</option>
+        <option value="3">วันพุธ (กลางวัน)</option>
+        <option value="4">วันเสาร์</option>
+        <option value="5">วันพฤหัสบดี</option>
+        <option value="6">วันพุธ (กลางคืน/ราหู)</option>
+        <option value="7">วันศุกร์</option>
+    </select>
+
+    <label>2. กรอกชื่อ-นามสกุล</label>
+    <input type="text" id="nameInput" placeholder="ตัวอย่าง: กานต์" autocomplete="off">
+    
+    <button onclick="analyze()">วิเคราะห์ผล</button>
+
+    <div id="result">
+        <div class="total-box">
+            ผลรวมพลังดวงดาว: <span id="totalSum">0</span>
+        </div>
+        
+        <h3>วิเคราะห์ตามหลักทักษา</h3>
+        <table class="grid-table">
+            <thead>
+                <tr>
+                    <th>อักษร</th>
+                    <th>ค่าพลัง</th>
+                    <th>หมวดทักษา</th>
+                </tr>
+            </thead>
+            <tbody id="detailBody"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    const starMap = {
+        'ก':1,'ด':1,'ถ':1,'ท':1,'ภ':1,'ฤ':1,'ฤๅ':1,'ำ':1,'า':1,'ุ':1,'่':1,'A':1,'I':1,'J':1,'Q':1,'Y':1,
+        'ข':2,'บ':2,'ป':2,'ง':2,'ช':2,'เ':2,'แ':2,'ู':2,'้':2,'B':2,'K':2,'R':2,
+        'ต':3,'ฑ':3,'ฒ':3,'ม':3,'๋':3,'C':3,'G':3,'L':3,'S':3,
+        'ค':4,'ธ':4,'ร':4,'ญ':4,'ษ':4,'ะ':4,'ิ':4,'โ':4,'ั':4,'D':4,'M':4,'T':4,
+        'ฉ':5,'ณ':5,'ฌ':5,'น':5,'ห':5,'ฮ':5,'ฎ':5,'ฬ':5,'ี':5,'E':5,'H':5,'N':5,'X':5,
+        'จ':6,'ล':6,'ว':6,'อ':6,'ใ':6,'U':6,'V':6,'W':6,
+        'ซ':7,'ศ':7,'ส':7,'ึ':7,'ื':7,'๊':7,'O':7,'Z':7,
+        'ย':8,'ผ':8,'ฝ':8,'พ':8,'ฟ':8,'็':8,'F':8,'P':8,
+        'ฏ':9,'ฐ':9,'ไ':9,'์':9
+    };
+
+    // หมวดอักษรทักษา (0:อาทิตย์, 1:จันทร์...)
+    const thaksaGroups = [
+        { name: "อาทิตย์", chars: "อะ อา อิ อี อุ อู เอ โอ" },
+        { name: "จันทร์", chars: "ก ข ค ง" },
+        { name: "อังคาร", chars: "จ ฉ ช ซ ฌ ญ" },
+        { name: "พุธกลางวัน", chars: "ฎ ฏ ฐ ฑ ฒ ณ" },
+        { name: "เสาร์", chars: "ด ต ถ ท ธ น" },
+        { name: "พฤหัสบดี", chars: "บ ป ผ ฝ พ ฟ ภ ม" },
+        { name: "พุธกลางคืน", chars: "ย ร ล ว" },
+        { name: "ศุกร์", chars: "ศ ษ ส ห ฬ ฮ" }
+    ];
+
+    const thaksaNames = ["บริวาร", "อายุ", "เดช", "ศรี", "มูละ", "อุตสาหะ", "มนตรี", "กาลกิณี"];
+
+    function getThaksaCategory(char, birthDayIdx) {
+        let charGroupIdx = -1;
+        for(let i=0; i<8; i++) {
+            if(thaksaGroups[i].chars.includes(char)) { charGroupIdx = i; break; }
+        }
+        if(charGroupIdx === -1) return "-";
+        
+        // คำนวณตำแหน่งทักษาตามวันเกิด
+        let pos = (charGroupIdx - birthDayIdx + 8) % 8;
+        return thaksaNames[pos];
+    }
+
+    function analyze() {
+        const name = document.getElementById('nameInput').value.trim();
+        const birthDayIdx = parseInt(document.getElementById('birthDay').value);
+        if(!name) return;
+
+        let total = 0;
+        let tableHtml = "";
+        const chars = Array.from(name);
+
+        chars.forEach(char => {
+            if(char === " ") return;
+            const val = starMap[char] || 0;
+            const cat = getThaksaCategory(char, birthDayIdx);
+            total += val;
+
+            let badgeClass = "neutral";
+            if(cat === "กาลกิณี") badgeClass = "kalakini";
+            else if(["เดช","ศรี","มนตรี"].includes(cat)) badgeClass = "good";
+
+            tableHtml += `<tr>
+                <td>${char}</td>
+                <td>${val || '-'}</td>
+                <td><span class="category-tag ${badgeClass}">${cat}</span></td>
+            </tr>`;
+        });
+
+        document.getElementById('totalSum').innerText = total;
+        document.getElementById('detailBody').innerHTML = tableHtml;
+        document.getElementById('result').style.display = "block";
+    }
+</script>
+
+</body>
+</html>
