@@ -26,7 +26,6 @@
         
         .total-badge { font-size: 18px; font-weight: bold; color: var(--primary); background: #f1f5f9; padding: 8px 15px; border-radius: 8px; display: inline-block; border: 1px solid #cbd5e0; }
         
-        /* สรุปผลรวมสุดท้าย */
         .grand-total-box { 
             margin-top: 40px; 
             padding: 25px; 
@@ -63,10 +62,10 @@
             <option value="7">วันศุกร์</option>
         </select>
 
-        <label>ชื่อ</label>
+        <label>ชื่อ (ไทย/อังกฤษ)</label>
         <input type="text" id="firstName" placeholder="กรอกชื่อที่นี่">
 
-        <label>นามสกุล</label>
+        <label>นามสกุล (ไทย/อังกฤษ)</label>
         <input type="text" id="lastName" placeholder="กรอกนามสกุลที่นี่">
     </div>
     
@@ -119,6 +118,7 @@
         5: "ดาวพฤหัสบดี", 6: "ดาวศุกร์", 7: "ดาวเสาร์", 8: "ดาวราหู", 9: "ดาวเกตุ"
     };
 
+    // ฐานข้อมูลตัวอักษร (ใช้ตัวพิมพ์ใหญ่เป็นหลัก)
     const starMap = {
         'ก':1,'ด':1,'ถ':1,'ท':1,'ภ':1,'ฤ':1,'ฤๅ':1,'ำ':1,'า':1,'ุ':1,'่':1,'A':1,'I':1,'J':1,'Q':1,'Y':1,
         'ข':2,'บ':2,'ป':2,'ง':2,'ช':2,'เ':2,'แ':2,'ู':2,'้':2,'B':2,'K':2,'R':2,
@@ -145,6 +145,7 @@
     const thaksaNames = ["บริวาร", "อายุ", "เดช", "ศรี", "มูละ", "อุตสาหะ", "มนตรี", "กาลกิณี"];
 
     function getThaksaCategory(char, birthDayIdx) {
+        // สำหรับภาษาอังกฤษ มักไม่ค่อยมีหลักทักษาแบบไทย แต่ในโปรแกรมจะคืนค่าเป็นกลางไว้
         let charGroupIdx = -1;
         for(let i=0; i<8; i++) {
             if(thaksaGroups[i].chars.split(' ').some(c => char.includes(c))) { charGroupIdx = i; break; }
@@ -157,9 +158,14 @@
     function generateTableRows(text, birthDayIdx) {
         let total = 0;
         let rows = "";
+        
+        // แยกอักขระและจัดการภาษาอังกฤษให้เป็นพิมพ์ใหญ่
         Array.from(text).forEach(char => {
             if(char === " ") return;
-            const val = starMap[char] || 0;
+            
+            // แปลงเป็นพิมพ์ใหญ่เพื่อเทียบ starMap
+            const lookupChar = char.toUpperCase(); 
+            const val = starMap[lookupChar] || 0;
             const starName = starInfo[val] || "-";
             const cat = getThaksaCategory(char, birthDayIdx);
             total += val;
@@ -188,22 +194,16 @@
         const nameRes = generateTableRows(fName, birthDayIdx);
         const surnameRes = generateTableRows(lName, birthDayIdx);
 
-        // แสดงผลชื่อ
         document.getElementById('resFirstName').innerText = fName || "-";
         document.getElementById('nameTable').innerHTML = nameRes.rows;
         document.getElementById('totalName').innerText = `รวมเลขชื่อ: ${nameRes.total}`;
 
-        // แสดงผลนามสกุล
         document.getElementById('resLastName').innerText = lName || "-";
         document.getElementById('surnameTable').innerHTML = surnameRes.rows;
         document.getElementById('totalSurname').innerText = `รวมเลขนามสกุล: ${surnameRes.total}`;
 
-        // แสดงผลรวมทั้งหมด
         document.getElementById('grandTotal').innerText = nameRes.total + surnameRes.total;
-
         document.getElementById('result').style.display = "block";
-        
-        // เลื่อนหน้าจอไปที่ผลลัพธ์
         document.getElementById('result').scrollIntoView({ behavior: 'smooth' });
     }
 </script>
