@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>โปรแกรมวิเคราะห์ชื่อ-นามสกุล ฮวงจุ้ยไทย</title>
     <style>
-        :root { --primary: #2c3e50; --secondary: #3498db; --accent: #e74c3c; --success: #38a169; }
+        :root { --primary: #2c3e50; --secondary: #3498db; --accent: #e74c3c; --success: #38a169; --gold: #d4af37; }
         body { font-family: 'Chakra Petch', sans-serif; background-color: #f7fafc; padding: 20px; color: var(--primary); }
         .container { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 800px; margin: auto; }
         h2 { text-align: center; color: var(--primary); margin-bottom: 25px; border-bottom: 4px solid var(--secondary); padding-bottom: 10px; }
@@ -20,11 +20,24 @@
         .table-container { margin-bottom: 30px; overflow-x: auto; }
         h3 { border-left: 5px solid var(--secondary); padding-left: 10px; margin-bottom: 15px; background: #f8f9fa; padding: 10px; border-radius: 0 10px 10px 0; }
         
-        table { width: 100%; border-collapse: collapse; background: white; }
+        table { width: 100%; border-collapse: collapse; background: white; margin-bottom: 10px; }
         th, td { border: 1px solid #edf2f7; padding: 12px; text-align: center; }
         th { background: #f1f5f9; color: #4a5568; }
         
-        .total-badge { font-size: 20px; font-weight: bold; color: var(--accent); background: #fff5f5; padding: 10px; border-radius: 10px; display: inline-block; margin-top: 10px; border: 1px solid #feb2b2; }
+        .total-badge { font-size: 18px; font-weight: bold; color: var(--primary); background: #f1f5f9; padding: 8px 15px; border-radius: 8px; display: inline-block; border: 1px solid #cbd5e0; }
+        
+        /* สรุปผลรวมสุดท้าย */
+        .grand-total-box { 
+            margin-top: 40px; 
+            padding: 25px; 
+            background: linear-gradient(135deg, #2c3e50, #4a5568); 
+            color: white; 
+            border-radius: 15px; 
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .grand-total-value { font-size: 48px; font-weight: bold; color: var(--gold); display: block; margin-top: 5px; }
+        
         .category-tag { padding: 4px 8px; border-radius: 6px; font-size: 13px; color: white; font-weight: bold; }
         .kalakini { background: var(--accent); }
         .good { background: var(--success); }
@@ -91,6 +104,12 @@
             </table>
             <div class="total-badge" id="totalSurname"></div>
         </div>
+
+        <div class="grand-total-box">
+            <span style="font-size: 1.2em; text-transform: uppercase; letter-spacing: 1px;">ผลรวมสุทธิ (ชื่อ + นามสกุล)</span>
+            <span class="grand-total-value" id="grandTotal">0</span>
+            <p style="margin-top: 10px; opacity: 0.8; font-size: 0.9em;">*ค่าพลังอำนาจดวงดาวรวมตามหลักเลขศาสตร์*</p>
+        </div>
     </div>
 </div>
 
@@ -113,7 +132,7 @@
     };
 
     const thaksaGroups = [
-        { name: "อาทิตย์", chars: "ะ า ิ ี ุ ู เ โ ะ" },
+        { name: "อาทิตย์", chars: "ะ า ิ ี ุ ู เ โ ะ ั ำ" },
         { name: "จันทร์", chars: "ก ข ค ง" },
         { name: "อังคาร", chars: "จ ฉ ช ซ ฌ ญ" },
         { name: "พุธกลางวัน", chars: "ฎ ฏ ฐ ฑ ฒ ณ" },
@@ -169,15 +188,23 @@
         const nameRes = generateTableRows(fName, birthDayIdx);
         const surnameRes = generateTableRows(lName, birthDayIdx);
 
-        document.getElementById('resFirstName').innerText = fName;
+        // แสดงผลชื่อ
+        document.getElementById('resFirstName').innerText = fName || "-";
         document.getElementById('nameTable').innerHTML = nameRes.rows;
-        document.getElementById('totalName').innerText = `ผลรวมชื่อ: ${nameRes.total}`;
+        document.getElementById('totalName').innerText = `รวมเลขชื่อ: ${nameRes.total}`;
 
-        document.getElementById('resLastName').innerText = lName;
+        // แสดงผลนามสกุล
+        document.getElementById('resLastName').innerText = lName || "-";
         document.getElementById('surnameTable').innerHTML = surnameRes.rows;
-        document.getElementById('totalSurname').innerText = `ผลรวมนามสกุล: ${surnameRes.total}`;
+        document.getElementById('totalSurname').innerText = `รวมเลขนามสกุล: ${surnameRes.total}`;
+
+        // แสดงผลรวมทั้งหมด
+        document.getElementById('grandTotal').innerText = nameRes.total + surnameRes.total;
 
         document.getElementById('result').style.display = "block";
+        
+        // เลื่อนหน้าจอไปที่ผลลัพธ์
+        document.getElementById('result').scrollIntoView({ behavior: 'smooth' });
     }
 </script>
 
