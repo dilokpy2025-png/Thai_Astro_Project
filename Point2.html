@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบวาดรูปและคำนวณพื้นที่แปลงเกษตร (Satellite Map)</title>
+    <title>ระบบจัดการแปลงเกษตรและคำนวณพื้นที่ (พร้อมระบบนำเข้าไฟล์)</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -14,18 +14,93 @@
     <script src="https://unpkg.com/leaflet-geometryutil@0.10.1/src/leaflet.geometryutil.js"></script>
     
     <style>
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; background-color: #f0f2f5; }
-        .container { max-width: 1300px; margin: 0 auto; display: flex; flex-direction: column; gap: 15px; }
-        .header-panel { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.08); display: flex; justify-content: space-between; align-items: center; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 0; 
+            padding: 20px; 
+            background-color: #f4f6f9; 
+        }
+        .container { 
+            max-width: 1300px; 
+            margin: 0 auto; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 15px; 
+        }
+        .header-panel { 
+            background: white; 
+            padding: 15px 20px; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.08); 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+        }
         h2 { margin: 0; color: #1a1a1a; }
-        #map { height: 550px; width: 100%; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 2px solid #fff; }
-        .btn { padding: 10px 20px; font-weight: bold; border: none; border-radius: 5px; cursor: pointer; transition: background 0.2s; }
-        .btn-secondary { background-color: #007bff; color: white; }
-        .btn:disabled { background-color: #ddd; cursor: not-allowed; }
-        .table-container { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.08); }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #eee; }
-        th { background-color: #343a40; color: white; }
+        p { margin: 5px 0 0 0; color: #666; font-size: 14px; }
+        
+        #map { 
+            height: 550px; 
+            width: 100%; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
+            border: 2px solid #fff; 
+        }
+        
+        .btn-group {
+            display: flex; 
+            gap: 10px;
+            align-items: center;
+        }
+        .btn { 
+            padding: 10px 20px; 
+            font-weight: bold; 
+            font-size: 14px;
+            border: none; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            transition: all 0.2s; 
+        }
+        .btn-primary { background-color: #007bff; color: white; }
+        .btn-primary:hover { background-color: #0069d9; }
+        .btn-success { background-color: #28a745; color: white; }
+        .btn-success:hover { background-color: #218838; }
+        .btn:disabled { background-color: #ddd; color: #888; cursor: not-allowed; }
+
+        /* ซ่อน Input file จริงเพื่อให้ใช้ปุ่มที่แต่งสวยงามได้ */
+        #fileInput { display: none; }
+
+        .table-container { 
+            background: white; 
+            padding: 20px; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.08); 
+            overflow-x: auto; 
+        }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; min-width: 800px; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; font-size: 14px; }
+        th { background-color: #343a40; color: white; font-weight: 600; }
+        tr:hover { background-color: #f8f9fa; }
+        
+        .btn-delete {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .btn-delete:hover { background-color: #c82333; }
+        
+        .source-badge {
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        .badge-draw { background-color: #e2f0d9; color: #385723; }
+        .badge-import { background-color: #fff2cc; color: #7f6000; }
     </style>
 </head>
 <body>
@@ -33,29 +108,36 @@
     <div class="container">
         <div class="header-panel">
             <div>
-                <h2>🗺️ ระบบวาดรูปและคำนวณพื้นที่แปลง (ไร่)</h2>
-                <p style="margin: 5px 0 0 0; color: #555;">คำแนะนำ: ใช้เครื่องมือทางซ้ายบนแผนที่เพื่อเริ่มวาดรูปแปลง </p>
+                <h2>🗺️ ระบบจัดการแปลงเกษตร (วาดรูปแปลง & นำเข้าไฟล์ CSV)</h2>
+                <p>วิธีใช้: วาดแปลงใหม่โดยใช้ปุ่มรูปห้าเหลี่ยมด้านซ้ายบนแผนที่ หรือกดปุ่ม <b>"📂 นำเข้าไฟล์แปลง (.csv)"</b> เพื่อโหลดงานเก่ากลับมาแสดงผล</p>
             </div>
-            <button id="btnDownload" class="btn btn-secondary" onclick="downloadFile()" disabled>💾 ดาวน์โหลดไฟล์พิกัด (.csv)</button>
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">📂 นำเข้าไฟล์แปลง (.csv)</button>
+                <input type="hidden" id="fileInput" accept=".csv" onchange="importCSV(this)">
+                
+                <button id="btnDownload" class="btn btn-success" onclick="downloadFile()" disabled>💾 ดาวน์โหลดไฟล์พิกัด (.csv)</button>
+            </div>
         </div>
         
         <div id="map"></div>
 
         <div class="table-container">
-            <h3>📋 รายการแปลงที่วาดเสร็จ</h3>
+            <h3 style="margin-top: 0; color: #333;">📋 รายการบันทึกข้อมูลพิกัดแปลง</h3>
             <table id="plotTable">
                 <thead>
                     <tr>
-                        <th>ที่</th>
-                        <th>ชื่อแปลง / หมายเหตุ</th>
-                        <th>พื้นที่ (ไร่)</th>
-                        <th>จำนวนจุดพิกัด</th>
-                        <th>พิกัดตัวอย่าง (จุดแรก)</th>
+                        <th width="7%">ลำดับ</th>
+                        <th width="20%">ชื่อแปลง / หมายเหตุ</th>
+                        <th width="23%">ขนาดพื้นที่</th>
+                        <th width="10%">จำนวนจุด</th>
+                        <th width="15%">ที่มาข้อมูล</th>
+                        <th width="15%">พิกัดจุดแรก (Lat, Lng)</th>
+                        <th width="10%">จัดการ</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td colspan="5" style="text-align: center; color: #888;">ยังไม่มีข้อมูลแปลงที่คุณวาด</td>
+                        <td colspan="7" style="text-align: center; color: #888; padding: 30px;">ยังไม่มีข้อมูลแปลงพิกัดในระบบ คุณสามารถเริ่มวาดแปลงหรือนำเข้าไฟล์ได้ทันที</td>
                     </tr>
                 </tbody>
             </table>
@@ -63,266 +145,79 @@
     </div>
 
     <script>
-        // 1. เริ่มต้นแผนที่ (พิกัดประเทศไทยตอนกลาง) ซูมระดับ 6 กำหนดความซูมได้สูงสุด 19
+        // --- 1. เริ่มต้นแผนที่ Google Satellite Hybrid ---
         const map = L.map('map').setView([13.736717, 100.523186], 6);
 
-        // 2. เรียกใช้ Layer ภาพถ่ายดาวเทียมจาก Esri World Imagery
-        const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-            attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
-            maxZoom: 19
+        const googleSatellite = L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+            attribution: '&copy; Google Maps',
+            maxZoom: 20
         }).addTo(map);
 
-        // --- ส่วนที่ 2: ตั้งค่าเครื่องมือวาด (Leaflet.draw) ---
-        // สร้าง Group สำหรับเก็บรูปทรงที่วาดเสร็จแล้ว
+        // --- 2. ตั้งค่าระบบ FeatureGroup และเครื่องมือวาด ---
         const drawnItems = new L.FeatureGroup();
         map.addLayer(drawnItems);
 
-        // กำหนดคอนโทรลเลอร์สำหรับวาด
         const drawControl = new L.Control.Draw({
-            edit: {
-                featureGroup: drawnItems, // อนุญาตให้แก้ไขรูปทรงในกลุ่มนี้ได้
-                remove: true             // อนุญาตให้ลบรูปทรงได้
-            },
+            edit: { featureGroup: drawnItems, remove: false },
             draw: {
-                polygon: {               // เปิดใช้เครื่องมือวาดรูปหลายเหลี่ยม (แปลง)
-                    allowIntersection: false, // ห้ามลากเส้นตัดกันเอง
-                    showArea: true       // แสดงพื้นที่ชั่วคราวขณะวาด (เป็น ตร.ม.)
+                polygon: {
+                    allowIntersection: false,
+                    showArea: true,
+                    metric: true,
+                    shapeOptions: { color: '#28a745', fillColor: '#28a745', fillOpacity: 0.3, weight: 3 } // สีเขียวสำหรับแปลงที่วาดใหม่
                 },
-                // ปิดเครื่องมืออื่นๆ ที่ไม่จำเป็น
-                polyline: false,
-                circle: false,
-                rectangle: false,
-                marker: false,
-                circlemarker: false
+                polyline: false, circle: false, rectangle: false, marker: false, circlemarker: false
             }
         });
         map.addControl(drawControl);
 
-        // ตัวแปรเก็บข้อมูลแปลงที่บันทึก
         let savedPlots = [];
 
-        // --- ส่วนที่ 3: ดักจับ Event เมื่อวาดรูปเสร็จ ---
+        // --- 3. ฟังก์ชันแปลงพื้นที่ ตร.ม. ให้เป็นหน่วยไทย ---
+        function convertToThaiUnit(sqMeters) {
+            const sqWa = sqMeters / 4;
+            let rai = Math.floor(sqWa / 400);
+            let remainWa = sqWa % 400;
+            let ngan = Math.floor(remainWa / 100);
+            let wa = (remainWa % 100).toFixed(1);
+            return {
+                text: `${rai} ไร่ ${ngan} งาน ${wa} ตร.ว.`,
+                raiFraction: (sqMeters / 1600).toFixed(2)
+            };
+        }
+
+        // --- 4. ดักจับ Event เมื่อวาดรูปทรงใหม่สำเร็จ ---
         map.on(L.Draw.Event.CREATED, function (e) {
             const layer = e.layer;
-            const type = e.layerType;
-
-            if (type === 'polygon') {
-                const latlngs = layer.getLatLngs()[0]; // ดึงอาเรย์ของจุดพิกัดทั้งหมด
-                
-                // 1. คำนวณพื้นที่เป็นตารางเมตร
-                const areaSqMers = L.GeometryUtil.geodesicArea(latlngs);
-                
-                // 2. แปลง ตร.ม. เป็น ไร่ (1 ไร่ = 1,600 ตร.ม.)
-                const areaRai = (areaSqMers / 1600).toFixed(2);
-
-                // 3. แสดง Popup ถามยืนยันการบันทึก
-                setTimeout(() => {
-                    const confirmSave = confirm(`✅ วาดแปลงเสร็จแล้ว!\nขนาดพื้นที่โดยประมาณ: ${areaRai} ไร่\n\nคุณต้องการบันทึกแปลงนี้หรือไม่?`);
-                    
-                    if (confirmSave) {
-                        const plotName = prompt("กรุณาตั้งชื่อแปลงเกษตรนี้:", `แปลงที่ ${savedPlots.length + 1}`);
-                        
-                        if (plotName !== null) {
-                            const finalName = plotName.trim() === "" ? `แปลงที่ ${savedPlots.length + 1}` : plotName;
-                            
-                            // เก็บบันทึกข้อมูล
-                            savedPlots.push({
-                                id: savedPlots.length + 1,
-                                name: finalName,
-                                areaRai: areaRai,
-                                coords: latlngs.map(ll => [ll.lat.toFixed(6), ll.lng.toFixed(6)]), // เก็บ Lat,Lng ของทุกจุด
-                                numCoords: latlngs.length
-                            });
-
-                            // เพิ่มรูปทรงลงแผนที่ถาวรและปัก Popup
-                            drawnItems.addLayer(layer);
-                            layer.bindPopup(`<b>${finalName}</b><br>พื้นที่: ${areaRai} ไร่`);
-
-                            // อัปเดตตารางและปุ่มดาวน์โหลด
-                            updateTableDisplay();
-                        }
-                    }
-                }, 100);
-            }
-        });
-
-        // --- ส่วนที่ 4: แสดงผลและดาวน์โหลด ---
-        function updateTableDisplay() {
-            const tbody = document.querySelector('#plotTable tbody');
-            const btnDownload = document.getElementById('btnDownload');
-            
-            if (savedPlots.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #888;">ยังไม่มีข้อมูลแปลงที่คุณวาด</td></tr>`;
-                btnDownload.disabled = true;
-                return;
-            }
-
-            btnDownload.disabled = false;
-            tbody.innerHTML = '';
-
-            savedPlots.forEach((plot) => {
-                const firstCoord = plot.coords[0];
-                const row = `
-                    <tr>
-                        <td>${plot.id}หากต้องการให้แอปพลิเคชันนี้สามารถ**วาดรูปรูปแปลงเกษตร** (หลายเหลี่ยม) และ**คำนวณขนาดพื้นที่เป็น "ไร่"** ได้ด้วย เราจำเป็นต้องเปลี่ยนวิธีและเครื่องมือครับ
-
-เราจะใช้เครื่องมือเพิ่มเติมที่ชื่อว่า **Leaflet.draw** ซึ่งเป็นปลั๊กอินสำหรับวาดรูปโดยเฉพาะ และใช้ **สูตรคณิตศาสตร์ทางภูมิศาสตร์** (ผ่าน `L.GeometryUtil.geodesicArea`) เพื่อคำนวณพื้นที่จริงบนส่วนโค้งของโลกครับ
-
-### โค้ด HTML + JS (Copy ไปเซฟเป็น `index_draw_area.html` แล้วเปิดใช้งานได้เลย)
-
-```html
-<!DOCTYPE html>
-<html lang="th">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบวาดรูปและคำนวณพื้นที่แปลงเกษตร (Satellite Map)</title>
-    
-    <link rel="stylesheet" href="[https://unpkg.com/leaflet@1.9.4/dist/leaflet.css](https://unpkg.com/leaflet@1.9.4/dist/leaflet.css)" />
-    <script src="[https://unpkg.com/leaflet@1.9.4/dist/leaflet.js](https://unpkg.com/leaflet@1.9.4/dist/leaflet.js)"></script>
-    
-    <link rel="stylesheet" href="[https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css](https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css)"/>
-    <script src="[https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js](https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js)"></script>
-
-    <script src="[https://unpkg.com/leaflet-geometryutil@0.10.1/src/leaflet.geometryutil.js](https://unpkg.com/leaflet-geometryutil@0.10.1/src/leaflet.geometryutil.js)"></script>
-    
-    <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background-color: #f0f2f5; }
-        .container { max-width: 1300px; margin: 0 auto; display: flex; flex-direction: column; gap: 15px; }
-        .header-panel { background: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.08); display: flex; justify-content: space-between; align-items: center; }
-        h2 { margin: 0; color: #1a1a1a; }
-        
-        /* สไตล์แผนที่ */
-        #map { height: 550px; width: 100%; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 2px solid #fff; }
-        
-        /* สไตล์ปุ่ม */
-        .btn { padding: 10px 20px; font-weight: bold; border: none; border-radius: 5px; cursor: pointer; transition: all 0.2s; }
-        .btn-secondary { background-color: #007bff; color: white; }
-        .btn:disabled { background-color: #ddd; cursor: not-allowed; }
-
-        /* สไตล์ตาราง */
-        .table-container { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.08); overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; min-width: 800px; }
-        th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #eee; font-size: 14px; }
-        th { background-color: #343a40; color: white; }
-    </style>
-</head>
-<body>
-
-    <div class="container">
-        <div class="header-panel">
-            <div>
-                <h2>🗺️ ระบบวาดรูปและคำนวณพื้นที่แปลง (ไร่)</h2>
-                <p style="margin: 5px 0 0 0; color: #555;">วิธีใช้: กดเครื่องมือวาด (รูปห้าเหลี่ยม) ด้านซ้ายบนแผนที่ แล้วคลิกเพื่อลากเส้นล้อมรอบแปลง </p>
-            </div>
-            <button id="btnDownload" class="btn btn-secondary" onclick="downloadFile()" disabled>💾 ดาวน์โหลดไฟล์พิกัด (.csv)</button>
-        </div>
-        
-        <div id="map"></div>
-
-        <div class="table-container">
-            <h3>📋 รายการแปลงที่บันทึกสำเร็จ</h3>
-            <table id="plotTable">
-                <thead>
-                    <tr>
-                        <th>ลำดับที่</th>
-                        <th>ชื่อแปลง / หมายเหตุ</th>
-                        <th>พื้นที่โดยประมาณ (ไร่)</th>
-                        <th>จำนวนจุดพิกัด</th>
-                        <th>พิกัดจุดแรก (Lat, Lng)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td colspan="5" style="text-align: center; color: #888;">ยังไม่มีข้อมูลแปลงที่คุณวาด</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <script>
-        // --- 1. เริ่มต้นแผนที่ภาพดาวเทียม ---
-        const map = L.map('map').setView([13.736717, 100.523186], 6); // พิกัดไทยตอนกลาง
-
-        // Layer ภาพถ่ายดาวเทียม (Satellite)
-        const satelliteLayer = L.tileLayer('[https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/](https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/){z}/{y}/{x}', {
-            attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
-            maxZoom: 19
-        }).addTo(map);
-
-
-        // --- 2. ตั้งค่าเครื่องมือวาด (Leaflet.draw) ---
-        // สร้าง Group สำหรับเก็บรูปทรงที่วาดสำเร็จ
-        const drawnItems = new L.FeatureGroup();
-        map.addLayer(drawnItems);
-
-        // กำหนดค่าคอนโทรลวาด (แสดงแถบเครื่องมือด้านซ้ายบน)
-        const drawControl = new L.Control.Draw({
-            edit: {
-                featureGroup: drawnItems, // อนุญาตให้แก้ไขรูปทรงในกลุ่มนี้
-                remove: true             // อนุญาตให้ลบ
-            },
-            draw: {
-                polygon: {               // เปิดเครื่องมือวาดรูปหลายเหลี่ยม (แปลง)
-                    allowIntersection: false, // ห้ามลากเส้นตัดกันเอง
-                    showArea: true,      // แสดงพื้นที่ขณะวาด (เป็น ตร.ม.)
-                    shapeOptions: { color: '#dc3545' } // สีของเส้น
-                },
-                // ปิดเครื่องมือวาดรูปทรงอื่นๆ ที่ไม่จำเป็น
-                polyline: false,
-                circle: false,
-                rectangle: false,
-                marker: false,
-                circlemarker: false
-            }
-        });
-        map.addControl(drawControl);
-
-
-        // ตัวแปรเก็บข้อมูลแปลงที่บันทึก
-        let savedPlots = [];
-
-
-        // --- 3. ดักจับ Event เมื่อวาดรูปทรงสำเร็จ ---
-        map.on(L.Draw.Event.CREATED, function (e) {
-            const layer = e.layer;
-            const type = e.layerType;
-
-            // ตรวจสอบว่าเป็นรูปหลายเหลี่ยม (Polygon)
-            if (type === 'polygon') {
-                const latlngs = layer.getLatLngs()[0]; // ดึงอาเรย์ของพิกัดทั้งหมด
-                
-                // 1. คำนวณพื้นที่เป็นตารางเมตร (ด้วย L.GeometryUtil)
+            if (e.layerType === 'polygon') {
+                const latlngs = layer.getLatLngs()[0];
                 const areaSqMeters = L.GeometryUtil.geodesicArea(latlngs);
-                
-                // 2. แปลง ตร.ม. เป็น ไร่ (1 ไร่ = 1,600 ตร.ม.)
-                const areaRai = (areaSqMeters / 1600).toFixed(2);
+                const thaiUnit = convertToThaiUnit(areaSqMeters);
 
-                // 3. แสดงกล่องยืนยันการบันทึก
                 setTimeout(() => {
-                    const confirmSave = confirm(`✅ พบแปลงเกษตรใหม่!\nขนาดพื้นที่ประมาณ: ${areaRai} ไร่\n\nคุณต้องการบันทึกแปลงนี้หรือไม่?`);
+                    const confirmSave = confirm(`✅ วาดแปลงเสร็จเรียบร้อย!\nขนาดพื้นที่คำนวณได้: ${thaiUnit.text}\n\nคุณต้องการบันทึกพิกัดแปลงนี้ลงตารางหรือไม่?`);
                     
                     if (confirmSave) {
-                        const plotName = prompt("กรุณาตั้งชื่อแปลงเกษตรนี้:", `แปลงที่ ${savedPlots.length + 1}`);
-                        
+                        const plotName = prompt("กรุณากรอกชื่อแปลงหรือหมายเหตุอ้างอิง:", `แปลงที่ ${savedPlots.length + 1}`);
                         if (plotName !== null) {
                             const finalName = plotName.trim() === "" ? `แปลงที่ ${savedPlots.length + 1}` : plotName;
                             
-                            // เก็บบันทึกข้อมูลลง Array
-                            savedPlots.push({
-                                id: savedPlots.length + 1,
+                            const currentPlot = {
+                                id: Date.now(),
                                 name: finalName,
-                                areaRai: areaRai,
-                                coords: latlngs.map(ll => [ll.lat.toFixed(6), ll.lng.toFixed(6)]), // เก็บ Lat,Lng ของทุกจุด
-                                numCoords: latlngs.length
-                            });
-
-                            // เพิ่มรูปทรงลงแผนที่ถาวรและใส่ Popup
-                            drawnItems.addLayer(layer);
-                            layer.bindPopup(`<b>${finalName}</b><br>พื้นที่ประมาณ: ${areaRai} ไร่`);
-
-                            // อัปเดตตารางและปุ่มดาวน์โหลด
+                                areaText: thaiUnit.text,
+                                areaRaiFraction: thaiUnit.raiFraction,
+                                coords: latlngs.map(ll => [ll.lat.toFixed(6), ll.lng.toFixed(6)]),
+                                numCoords: latlngs.length,
+                                source: 'วาดใหม่',
+                                layer: layer
+                            };
+                            
+                            savedPlots.push(currentPlot);
+                            layer.addTo(drawnItems);
+                            layer.bindPopup(`<b>${finalName}</b><br>พื้นที่: ${thaiUnit.text}<br>ที่มา: วาดใหม่`);
+                            layer.openPopup();
+                            
                             updateTableDisplay();
                         }
                     }
@@ -330,14 +225,13 @@
             }
         });
 
-
-        // --- 4. แสดงผลข้อมูลในตาราง ---
+        // --- 5. ฟังก์ชันอัปเดตตารางหน้าเว็บ ---
         function updateTableDisplay() {
             const tbody = document.querySelector('#plotTable tbody');
             const btnDownload = document.getElementById('btnDownload');
             
             if (savedPlots.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #888;">ยังไม่มีข้อมูลแปลงที่คุณวาด</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #888; padding: 30px;">ยังไม่มีข้อมูลแปลงพิกัดในระบบ</td></tr>`;
                 btnDownload.disabled = true;
                 return;
             }
@@ -345,33 +239,46 @@
             btnDownload.disabled = false;
             tbody.innerHTML = '';
 
-            savedPlots.forEach((plot) => {
-                const firstCoord = plot.coords[0]; // พิกัดจุดแรกเพื่อโชว์ตัวอย่าง
-                const row = `
-                    <tr>
-                        <td>${plot.id}</td>
-                        <td><b>${plot.name}</b></td>
-                        <td style="color: #28a745; font-weight: bold;">${plot.areaRai}</td>
-                        <td>${plot.numCoords} จุด</td>
-                        <td>${firstCoord[0]}, ${firstCoord[1]}</td>
-                    </tr>
+            savedPlots.forEach((plot, index) => {
+                const firstCoord = plot.coords[0];
+                const badgeClass = plot.source === 'วาดใหม่' ? 'badge-draw' : 'badge-import';
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td><b>${plot.name}</b></td>
+                    <td style="color: #218838; font-weight: bold;">${plot.areaText}</td>
+                    <td>${plot.numCoords} จุด</td>
+                    <td><span class="source-badge ${badgeClass}">${plot.source}</span></td>
+                    <td style="font-family: monospace; color: #555;">${firstCoord[0]}, ${firstCoord[1]}</td>
+                    <td><button class="btn-delete" onclick="deletePlot(${plot.id})">ลบแปลง</button></td>
                 `;
-                tbody.innerHTML += row;
+                tbody.appendChild(row);
             });
         }
 
+        // --- 6. ฟังก์ชันลบแปลงข้อมูลออกจากระบบ ---
+        function deletePlot(id) {
+            if (confirm("คุณแน่ใจหรือไม่ว่าต้องการลบข้อมูลแปลงนี้?")) {
+                const plotIndex = savedPlots.findIndex(p => p.id === id);
+                if (plotIndex !== -1) {
+                    drawnItems.removeLayer(savedPlots[plotIndex].layer);
+                    savedPlots.splice(plotIndex, 1);
+                    updateTableDisplay();
+                }
+            }
+        }
 
-        // --- 5. ดาวน์โหลดข้อมูลเป็นไฟล์ .CSV ---
+        // --- 7. ฟังก์ชันส่งออกไฟล์ดาวน์โหลด .CSV ---
         function downloadFile() {
             if (savedPlots.length === 0) return;
 
-            // สร้างหัว CSV
-            let fileContent = "ลำดับ,ชื่อแปลง,พื้นที่_ไร่,จำนวนจุด,พิกัดทั้งหมด_JSON\n";
+            let fileContent = "\uFEFFลำดับ,ชื่อแปลง,ขนาดพื้นที่_หน่วยไทย,ขนาดพื้นที่_ไร่ทศนิยม,จำนวนจุดพิกัด,พิกัดละติจูด_ลองจิจูด_ทุกจุด\n";
             
-            savedPlots.forEach(plot => {
-                // สำหรับพิกัดทั้งหมด เราจะเก็บเป็น JSON string เพื่อให้ทุกจุดอยู่ในคอลัมน์เดียว
-                const allCoordsJson = JSON.stringify(plot.coords);
-                fileContent += `${plot.id},${plot.name},${plot.areaRai},${plot.numCoords},"${allCoordsJson.replace(/"/g, '""')}"\n`;
+            savedPlots.forEach((plot, index) => {
+                // จัดรูปแบบชุดพิกัด (Lat Lng) คั่นด้วยเครื่องหมาย -> เพื่อความง่ายในการดาวน์โหลดและนำกลับมาอ่านใหม่
+                const allCoordsString = plot.coords.map(c => `${c[0]} ${c[1]}`).join(' -> ');
+                fileContent += `${index + 1},${plot.name},${plot.areaText},${plot.areaRaiFraction},${plot.numCoords},"${allCoordsString}"\n`;
             });
 
             const blob = new Blob([fileContent], { type: 'text/csv;charset=utf-8;' });
@@ -379,10 +286,95 @@
             
             const link = document.createElement("a");
             link.setAttribute("href", url);
-            link.setAttribute("download", `ข้อมูลแปลงเกษตร_${new Date().toISOString().slice(0,10)}.csv`);
+            link.setAttribute("download", `ข้อมูลพิกัดและพื้นที่แปลงเกษตร_${new Date().toISOString().slice(0,10)}.csv`);
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+        }
+
+        // --- 8. ฟังก์ชันนำเข้าไฟล์ CSV (Import Feature) ---
+        function importCSV(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const text = e.target.result;
+                const lines = text.split(/\r?\n/);
+                let importedCount = 0;
+                let firstImportedLayer = null;
+
+                // วนลูปอ่านข้อมูลตั้งแต่บรรทัดที่ 2 เป็นต้นไป (ข้ามหัวตาราง)
+                for (let i = 1; i < lines.length; i++) {
+                    if (!lines[i].trim()) continue;
+
+                    // ใช้ Regex แยกคอมมาอย่างระมัดระวัง (ป้องกันปัญหาคอมมาที่อยู่ในเครื่องหมายคำพูด "")
+                    const matches = lines[i].match(/(".*?"|[^,\s]+)(?=\s*,|\s*$)/g) || lines[i].split(',');
+                    
+                    if (matches.length >= 6) {
+                        const name = matches[1].replace(/["']/g, "").trim();
+                        const areaText = matches[2].replace(/["']/g, "").trim();
+                        const areaRaiFraction = matches[3].replace(/["']/g, "").trim();
+                        const numCoords = parseInt(matches[4].replace(/["']/g, "").trim());
+                        let rawCoordsStr = matches[5].replace(/["']/g, "").trim();
+
+                        try {
+                            // แกะข้อความพิกัดที่คั่นด้วย ' -> ' กลับมาเป็นอาร์เรย์พิกัดตัวเลข [lat, lng]
+                            const coordPairs = rawCoordsStr.split(' -> ');
+                            const parsedLatLngs = coordPairs.map(pair => {
+                                const parts = pair.trim().split(' ');
+                                return L.latLng(parseFloat(parts[0]), parseFloat(parts[1]));
+                            });
+
+                            if (parsedLatLngs.length > 0) {
+                                // สร้างรูปทรง Polygon บนแผนที่ (แปลงที่นำเข้าจะเป็น "สีส้มสว่าง" เพื่อให้เห็นความต่างชัดเจน)
+                                const layer = L.polygon(parsedLatLngs, {
+                                    color: '#ffc107', 
+                                    fillColor: '#ffc107',
+                                    fillOpacity: 0.3,
+                                    weight: 3
+                                });
+
+                                const plotId = Date.now() + i; // ป้องกัน ID ซ้ำกันกรณีโหลดพร้อมกันหลายเรคคอร์ด
+                                const importedPlot = {
+                                    id: plotId,
+                                    name: name,
+                                    areaText: areaText,
+                                    areaRaiFraction: areaRaiFraction,
+                                    coords: parsedLatLngs.map(ll => [ll.lat.toFixed(6), ll.lng.toFixed(6)]),
+                                    numCoords: parsedLatLngs.length,
+                                    source: 'นำเข้าจากไฟล์',
+                                    layer: layer
+                                };
+
+                                savedPlots.push(importedPlot);
+                                layer.addTo(drawnItems);
+                                layer.bindPopup(`<b>${name}</b><br>พื้นที่: ${areaText}<br>ที่มา: ไฟล์ภายนอก`);
+                                
+                                if (!firstImportedLayer) firstImportedLayer = layer;
+                                importedCount++;
+                            }
+                        } catch (error) {
+                            console.error(`เกิดข้อผิดพลาดในการแกะพิกัดแถวที่ ${i + 1}:`, error);
+                        }
+                    }
+                }
+
+                if (importedCount > 0) {
+                    updateTableDisplay();
+                    alert(`🎉 นำเข้าข้อมูลสำเร็จเรียบร้อย ทั้งหมด ${importedCount} แปลง!`);
+                    
+                    // สั่งให้แผนที่แพน (Pan) หน้าจอและซูมโฟกัสไปหาจุดแปลงที่นำเข้าล่าสุดอัตโนมัติ
+                    if (firstImportedLayer) {
+                        map.fitBounds(firstImportedLayer.getBounds());
+                    }
+                } else {
+                    alert("❌ ไม่สามารถอ่านพิกัดจากไฟล์ที่เลือกได้ กรุณาตรวจสอบฟอร์แมตไฟล์ CSV ของคุณ");
+                }
+            };
+
+            reader.readAsText(file, "UTF-8");
+            input.value = ''; // ล้างค่าอินพุตเพื่อให้อนุญาตอัปโหลดไฟล์เดิมซ้ำได้ในครั้งต่อไป
         }
     </script>
 </body>
