@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบจัดการแปลงเกษตรและคำนวณพื้นที่ (เวอร์ชันแก้ไขปุ่มนำเข้า)</title>
+    <title>ระบบจัดการแปลงเกษตรและคำนวณพื้นที่ (แก้ไขระบบนำเข้าข้อมูล)</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -48,7 +48,6 @@
             position: relative;
         }
         
-        /* สไตล์แจ้งเตือนเมื่อลากไฟล์มาวางบนแผนที่ */
         #dropZoneOverlay {
             display: none;
             position: absolute;
@@ -138,15 +137,15 @@
         </div>
 
         <div class="table-container">
-            <h3 style="margin-top: 0; color: #333;">📋 รายการบันทึกข้อมูลพิกัดแปลง</h3>
+            <h3>📋 รายการบันทึกข้อมูลพิกัดแปลง</h3>
             <table id="plotTable">
                 <thead>
                     <tr>
                         <th width="7%">ลำดับ</th>
-                        <th width="20%">ชื่อแปลง / หมายเหตุ</th>
+                        <th width="22%">ชื่อแปลง / หมายเหตุ</th>
                         <th width="23%">ขนาดพื้นที่</th>
                         <th width="10%">จำนวนจุด</th>
-                        <th width="15%">ที่มาข้อมูล</th>
+                        <th width="13%">ที่มาข้อมูล</th>
                         <th width="15%">พิกัดจุดแรก (Lat, Lng)</th>
                         <th width="10%">จัดการ</th>
                     </tr>
@@ -289,11 +288,13 @@
         function downloadFile() {
             if (savedPlots.length === 0) return;
 
+            // ใช้การคั่นข้อมูลด้วย Comma ปกติ แต่จะครอบฟิลด์ข้อความด้วยเครื่องหมายคำพูด ""
             let fileContent = "\uFEFFลำดับ,ชื่อแปลง,ขนาดพื้นที่_หน่วยไทย,ขนาดพื้นที่_ไร่ทศนิยม,จำนวนจุดพิกัด,พิกัดละติจูด_ลองจิจูด_ทุกจุด\n";
             
             savedPlots.forEach((plot, index) => {
                 const allCoordsString = plot.coords.map(c => `${c[0]} ${c[1]}`).join(' -> ');
-                fileContent += `${index + 1},${plot.name},${plot.areaText},${plot.areaRaiFraction},${plot.numCoords},"${allCoordsString}"\n`;
+                // ครอบเครื่องหมาย "" ฟิลด์ที่เป็นข้อความเพื่อความปลอดภัยสูงสุด
+                fileContent += `${index + 1},"${plot.name}","${plot.areaText}",${plot.areaRaiFraction},${plot.numCoords},"${allCoordsString}"\n`;
             });
 
             const blob = new Blob([fileContent], { type: 'text/csv;charset=utf-8;' });
@@ -307,7 +308,25 @@
             document.body.removeChild(link);
         }
 
-        // --- 8. ฟังก์ชันประมวลผลไฟล์ CSV ที่นำเข้า ---
+        // --- 8. ฟังก์ชันช่วยถอดรหัสบรรทัด CSV (Standard CSV Parser) เพื่อรองรับเครื่องหมายคอมมาในฟิลด์ ---
+        function parseCSVLine(text) {
+            let p = '', r = [];
+            let q = false;
+            for (let i = 0; i < text.length; i++) {
+                let c = text[i];
+                if (c === '"') { 
+                    q = !q; 
+                } else if (c === ',' && !q) { 
+                    r.push(p.trim()); p = ''; 
+                } else { 
+                    p += c; 
+                }
+            }
+            r.push(p.trim());
+            return r;
+        }
+
+        // --- 9. ฟังก์ชันประมวลผลไฟล์ CSV ที่นำเข้า (ปรับปรุงใหม่ให้ดึงข้อมูลครบถ้วน) ---
         function importCSV(file) {
             if (!file) return;
 
@@ -321,13 +340,15 @@
                 for (let i = 1; i < lines.length; i++) {
                     if (!lines[i].trim()) continue;
 
-                    const matches = lines[i].match(/(".*?"|[^,\s]+)(?=\s*,|\s*$)/g) || lines[i].split(',');
+                    // ใช้ฟังก์ชันถอดรหัสแถวแบบใหม่ ป้องกันปัญหาเครื่องหมายคอมมาในส่วนพื้นที่เอฟเฟกต์ข้อมูลเลื่อน
+                    const columns = parseCSVLine(lines[i]);
                     
-                    if (matches.length >= 6) {
-                        const name = matches[1].replace(/["']/g, "").trim();
-                        const areaText = matches[2].replace(/["']/g, "").trim();
-                        const areaRaiFraction = matches[3].replace(/["']/g, "").trim();
-                        let rawCoordsStr = matches[5].replace(/["']/g, "").trim();
+                    if (columns.length >= 6) {
+                        const name = columns[1];
+                        const areaText = columns[2];
+                        const areaRaiFraction = columns[3];
+                        const numCoords = parseInt(columns[4]);
+                        let rawCoordsStr = columns[5];
 
                         try {
                             const coordPairs = rawCoordsStr.split(' -> ');
@@ -337,6 +358,7 @@
                             });
 
                             if (parsedLatLngs.length > 0) {
+                                // สร้างรูปแปลงกลับขึ้นแผนที่ (สีเหลืองส้ม)
                                 const layer = L.polygon(parsedLatLngs, {
                                     color: '#ffc107', 
                                     fillColor: '#ffc107',
@@ -364,7 +386,7 @@
                                 importedCount++;
                             }
                         } catch (error) {
-                            console.error(`เกิดข้อผิดพลาดแถวที่ ${i + 1}:`, error);
+                            console.error(`เกิดข้อผิดพลาดในการแกะพิกัดบรรทัดที่ ${i + 1}:`, error);
                         }
                     }
                 }
@@ -384,22 +406,15 @@
             document.getElementById('fileInput').value = ''; 
         }
 
-        // --- 9. ระบบ Drag & Drop ไฟล์ลงบนตัวแผนที่โดยตรง ---
+        // --- 10. ระบบ Drag & Drop ไฟล์ลงบนตัวแผนที่โดยตรง ---
         const mapDiv = document.getElementById('map');
         const overlay = document.getElementById('dropZoneOverlay');
 
         window.addEventListener('dragover', function(e) { e.preventDefault(); });
         window.addEventListener('drop', function(e) { e.preventDefault(); });
 
-        mapDiv.addEventListener('dragenter', function(e) {
-            e.preventDefault();
-            overlay.style.display = 'flex';
-        });
-
-        mapDiv.addEventListener('dragleave', function(e) {
-            overlay.style.display = 'none';
-        });
-
+        mapDiv.addEventListener('dragenter', function(e) { e.preventDefault(); overlay.style.display = 'flex'; });
+        mapDiv.addEventListener('dragleave', function(e) { overlay.style.display = 'none'; });
         mapDiv.addEventListener('drop', function(e) {
             e.preventDefault();
             overlay.style.display = 'none';
