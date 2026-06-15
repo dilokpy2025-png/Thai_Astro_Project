@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบบันทึกพิกัดแปลงเกษตร (Satellite Map)</title>
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f2f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .header-panel {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        h2 { margin: 0; color: #1a1a1a; }
+        
+        /* ปุ่มควบคุม */
+        .btn {
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-primary {
+            background-color: #28a745;
+            color: white;
+        }
+        .btn-primary.active {
+            background-color: #dc3545;
+            box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.4);
+        }
+        .btn-secondary {
+            background-color: #007bff;
+            color: white;
+        }
+
+        /* แผนที่ */
+        #map {
+            height: 500px;
+            width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border: 2px solid #fff;
+        }
+
+        /* ตารางพิกัด */
+        .table-container {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        th {
+            background-color: #343a40;
+            color: white;
+        }
+        .status-text {
+            font-weight: bold;
+            color: #666;
+        }
+        .status-active {
+            color: #dc3545;
+            animation: blink 1.2s infinite;
+        }
+        @keyframes blink {
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header-panel">
+            <div>
+                <h2>🗺️ ระบบบันทึกพิกัดแปลง (ภาพดาวเทียม)</h2>
+                <p style="margin: 5px 0 0 0; color: #555;">
+                    สถานะปัจจุบัน: <span id="statusMode" class="status-text">โหมดดูแผนที่ปกติ (ซูมเข้า-ออก หาตำแหน่งได้อิสระ)</span>
+                </p>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button id="btnToggleMode" class="btn btn-primary" onclick="toggleSelectionMode()">📍 เลือกพิกัดแปลง</button>
+                <button id="btnDownload" class="btn btn-secondary" onclick="downloadFile()" disabled>💾 ดาวน์โหลดไฟล์พิกัด</button>
+            </div>
+        </div>
+        
+        <div id="map"></div>
+
+        <div class="table-container">
+            <h3>📋 รายการแปลงที่เลือกไว้ในระบบ</h3>
+            <table id="plotTable">
+                <thead>
+                    <tr>
+                        <th>แปลงที่</th>
+                        <th>ชื่อแปลง / หมายเหตุ</th>
+                        <th>Latitude</th>
+                        <th>Longitude</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="4" style="text-align: center; color: #888;">ยังไม่มีข้อมูลแปลงที่บันทึก</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <script>
+        // 1. เริ่มต้นแผนที่ (พิกัดประเทศไทยตอนกลาง) ซูมระดับ 6 กำหนดความซูมได้สูงสุด 19
+        const map = L.map('map').setView([13.736717, 100.523186], 6);
+
+        // 2. เรียกใช้ Layer ภาพถ่ายดาวเทียมจาก Esri World Imagery
+        const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+            maxZoom: 19
+        }).addTo(map);
+
+        // ตัวแปรสำหรับสถานะและเก็บข้อมูล
+        let isSelectionMode = false; 
+        let savedPlots = []; 
+
+        // 3. ฟังก์ชันสลับโหมด (ดูแผนที่ปกติ VS โหมดเลือกพิกัดแปลง)
+        function toggleSelectionMode() {
+            isSelectionMode = !isSelectionMode;
+            const btn = document.getElementById('btnToggleMode');
+            const statusText = document.getElementById('statusMode');
+
+            if (isSelectionMode) {
+                btn.innerText = "🛑 ยกเลิกการเลือกแปลง";
+                btn.classList.add('active');
+                statusText.innerText = "กำลังอยู่ในโหมดเลือกแปลง 🎯 กรุณาคลิกบนจุดที่ต้องการในแผนที่";
+                statusText.className = "status-text status-active";
+                map.getContainer().style.cursor = 'crosshair'; // เปลี่ยน Cursor เมาส์เป็นรูปเป้าเล็ง
+            } else {
+                resetMode();
+            }
+        }
+
+        function resetMode() {
+            isSelectionMode = false;
+            const btn = document.getElementById('btnToggleMode');
+            const statusText = document.getElementById('statusMode');
+            btn.innerText = "📍 เลือกพิกัดแปลง";
+            btn.classList.remove('active');
+            statusText.innerText = "โหมดดูแผนที่ปกติ (ซูมเข้า-ออก หาตำแหน่งได้อิสระ)";
+            statusText.className = "status-text";
+            map.getContainer().style.cursor = '';
+        }
+
+        // 4. ดักจับการคลิกบนแผนที่
+        map.on('click', function(e) {
+            // ทำงานเฉพาะตอนเปิดโหมด "เลือกพิกัดแปลง" เท่านั้น
+            if (!isSelectionMode) return;
+
+            const lat = e.latlng.lat.toFixed(6);
+            const lng = e.latlng.lng.toFixed(6);
+
+            // แสดง Popup กล่องข้อความถามยืนยันการบันทึกแปลง
+            setTimeout(() => {
+                const confirmSave = confirm(`📌 พบพิกัดแปลง:\nLatitude: ${lat}\nLongitude: ${lng}\n\nคุณต้องการบันทึกแปลงนี้หรือไม่?`);
+                
+                if (confirmSave) {
+                    const plotName = prompt("กรุณาตั้งชื่อหรือระบุหมายเหตุสำหรับแปลงนี้:", `แปลงที่ ${savedPlots.length + 1}`);
+                    
+                    if (plotName !== null) {
+                        const finalName = plotName.trim() === "" ? `แปลงที่ ${savedPlots.length + 1}` : plotName;
+                        
+                        // บันทึกเข้า Array
+                        savedPlots.push({
+                            id: savedPlots.length + 1,
+                            name: finalName,
+                            lat: lat,
+                            lng: lng
+                        });
+
+                        // ปักหมุดถาวรบนแผนที่
+                        L.marker([lat, lng]).addTo(map)
+                            .bindPopup(`<b>${finalName}</b><br>Lat: ${lat}<br>Lng: ${lng}`)
+                            .openPopup();
+
+                        // อัปเดตตารางหน้าจอ
+                        updateTableDisplay();
+                    }
+                }
+                
+                // บันทึกเสร็จแล้วให้ปิดโหมดกลับมาเป็นโหมดเลื่อนแผนที่ปกติอัตโนมัติ
+                resetMode();
+            }, 100);
+        });
+
+        // 5. อัปเดตข้อมูลตารางบนเว็บไซต์
+        function updateTableDisplay() {
+            const tbody = document.querySelector('#plotTable tbody');
+            const btnDownload = document.getElementById('btnDownload');
+            
+            if (savedPlots.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #888;">ยังไม่มีข้อมูลแปลงที่บันทึก</td></tr>`;
+                btnDownload.disabled = true;
+                return;
+            }
+
+            btnDownload.disabled = false; //เปิดให้กดโหลดไฟล์ได้
+            tbody.innerHTML = ''; // เคลียร์ตารางเก่า
+
+            savedPlots.forEach((plot) => {
+                const row = `
+                    <tr>
+                        <td>${plot.id}</td>
+                        <td><b>${plot.name}</b></td>
+                        <td>${plot.lat}</td>
+                        <td>${plot.lng}</td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+
+        // 6. ฟังก์ชันแปลงข้อมูลสร้างเป็นไฟล์ดาวน์โหลดลงเครื่อง (.txt หรือเปลี่ยนเป็น .csv ได้)
+        function downloadFile() {
+            if (savedPlots.length === 0) return;
+
+            // จัดฟอร์แมตข้อมูลในไฟล์เนื้อหา (ตัวอย่างนี้เลือกทำเป็น CSV Format เผื่อเปิดใน Excel ได้ง่าย)
+            let fileContent = "ลำดับ,ชื่อแปลง,Latitude,Longitude\n";
+            savedPlots.forEach(plot => {
+                fileContent += `${plot.id},${plot.name},${plot.lat},${plot.lng}\n`;
+            });
+
+            // สร้างก้อนข้อมูล Blob เพื่อเตรียมดาวน์โหลด
+            const blob = new Blob([fileContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            
+            // สร้าง Element ลิงก์ชั่วคราวเพื่อสั่งดาวน์โหลดอัตโนมัติ
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `ข้อมูลพิกัดแปลง_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            
+            link.click(); // สั่งดาวน์โหลด
+            document.body.removeChild(link); // ลบลิงก์ทิ้งหลังใช้งานเสร็จ
+        }
+    </script>
+</body>
+</html>
