@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบจัดการแปลงเกษตรและคำนวณพื้นที่ (พร้อมระบบนำเข้าไฟล์)</title>
+    <title>ระบบจัดการแปลงเกษตรและคำนวณพื้นที่ (เวอร์ชันแก้ไขปุ่มนำเข้า)</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -45,6 +45,23 @@
             border-radius: 8px; 
             box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
             border: 2px solid #fff; 
+            position: relative;
+        }
+        
+        /* สไตล์แจ้งเตือนเมื่อลากไฟล์มาวางบนแผนที่ */
+        #dropZoneOverlay {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 123, 255, 0.8);
+            color: white;
+            z-index: 9999;
+            border-radius: 8px;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            font-weight: bold;
+            pointer-events: none;
         }
         
         .btn-group {
@@ -66,9 +83,6 @@
         .btn-success { background-color: #28a745; color: white; }
         .btn-success:hover { background-color: #218838; }
         .btn:disabled { background-color: #ddd; color: #888; cursor: not-allowed; }
-
-        /* ซ่อน Input file จริงเพื่อให้ใช้ปุ่มที่แต่งสวยงามได้ */
-        #fileInput { display: none; }
 
         .table-container { 
             background: white; 
@@ -109,17 +123,19 @@
         <div class="header-panel">
             <div>
                 <h2>🗺️ ระบบจัดการแปลงเกษตร (วาดรูปแปลง & นำเข้าไฟล์ CSV)</h2>
-                <p>วิธีใช้: วาดแปลงใหม่โดยใช้ปุ่มรูปห้าเหลี่ยมด้านซ้ายบนแผนที่ หรือกดปุ่ม <b>"📂 นำเข้าไฟล์แปลง (.csv)"</b> เพื่อโหลดงานเก่ากลับมาแสดงผล</p>
+                <p>วิธีใช้: วาดแปลงใหม่โดยใช้ปุ่มรูปห้าเหลี่ยมด้านซ้ายบนแผนที่ หรือกดปุ่ม <b>"📂 นำเข้าไฟล์แปลง (.csv)"</b> (หรือลากไฟล์ CSV มาวางบนแผนที่ได้เลย)</p>
             </div>
             <div class="btn-group">
                 <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">📂 นำเข้าไฟล์แปลง (.csv)</button>
-                <input type="hidden" id="fileInput" accept=".csv" onchange="importCSV(this)">
+                <input type="file" id="fileInput" accept=".csv" style="display: none;" onchange="importCSV(this.files[0])">
                 
                 <button id="btnDownload" class="btn btn-success" onclick="downloadFile()" disabled>💾 ดาวน์โหลดไฟล์พิกัด (.csv)</button>
             </div>
         </div>
         
-        <div id="map"></div>
+        <div id="map">
+            <div id="dropZoneOverlay">📥 วางไฟล์ CSV ตรงนี้เพื่อนำเข้าข้อมูลแปลง</div>
+        </div>
 
         <div class="table-container">
             <h3 style="margin-top: 0; color: #333;">📋 รายการบันทึกข้อมูลพิกัดแปลง</h3>
@@ -164,7 +180,7 @@
                     allowIntersection: false,
                     showArea: true,
                     metric: true,
-                    shapeOptions: { color: '#28a745', fillColor: '#28a745', fillOpacity: 0.3, weight: 3 } // สีเขียวสำหรับแปลงที่วาดใหม่
+                    shapeOptions: { color: '#28a745', fillColor: '#28a745', fillOpacity: 0.3, weight: 3 }
                 },
                 polyline: false, circle: false, rectangle: false, marker: false, circlemarker: false
             }
@@ -276,7 +292,6 @@
             let fileContent = "\uFEFFลำดับ,ชื่อแปลง,ขนาดพื้นที่_หน่วยไทย,ขนาดพื้นที่_ไร่ทศนิยม,จำนวนจุดพิกัด,พิกัดละติจูด_ลองจิจูด_ทุกจุด\n";
             
             savedPlots.forEach((plot, index) => {
-                // จัดรูปแบบชุดพิกัด (Lat Lng) คั่นด้วยเครื่องหมาย -> เพื่อความง่ายในการดาวน์โหลดและนำกลับมาอ่านใหม่
                 const allCoordsString = plot.coords.map(c => `${c[0]} ${c[1]}`).join(' -> ');
                 fileContent += `${index + 1},${plot.name},${plot.areaText},${plot.areaRaiFraction},${plot.numCoords},"${allCoordsString}"\n`;
             });
@@ -292,9 +307,8 @@
             document.body.removeChild(link);
         }
 
-        // --- 8. ฟังก์ชันนำเข้าไฟล์ CSV (Import Feature) ---
-        function importCSV(input) {
-            const file = input.files[0];
+        // --- 8. ฟังก์ชันประมวลผลไฟล์ CSV ที่นำเข้า ---
+        function importCSV(file) {
             if (!file) return;
 
             const reader = new FileReader();
@@ -304,22 +318,18 @@
                 let importedCount = 0;
                 let firstImportedLayer = null;
 
-                // วนลูปอ่านข้อมูลตั้งแต่บรรทัดที่ 2 เป็นต้นไป (ข้ามหัวตาราง)
                 for (let i = 1; i < lines.length; i++) {
                     if (!lines[i].trim()) continue;
 
-                    // ใช้ Regex แยกคอมมาอย่างระมัดระวัง (ป้องกันปัญหาคอมมาที่อยู่ในเครื่องหมายคำพูด "")
                     const matches = lines[i].match(/(".*?"|[^,\s]+)(?=\s*,|\s*$)/g) || lines[i].split(',');
                     
                     if (matches.length >= 6) {
                         const name = matches[1].replace(/["']/g, "").trim();
                         const areaText = matches[2].replace(/["']/g, "").trim();
                         const areaRaiFraction = matches[3].replace(/["']/g, "").trim();
-                        const numCoords = parseInt(matches[4].replace(/["']/g, "").trim());
                         let rawCoordsStr = matches[5].replace(/["']/g, "").trim();
 
                         try {
-                            // แกะข้อความพิกัดที่คั่นด้วย ' -> ' กลับมาเป็นอาร์เรย์พิกัดตัวเลข [lat, lng]
                             const coordPairs = rawCoordsStr.split(' -> ');
                             const parsedLatLngs = coordPairs.map(pair => {
                                 const parts = pair.trim().split(' ');
@@ -327,7 +337,6 @@
                             });
 
                             if (parsedLatLngs.length > 0) {
-                                // สร้างรูปทรง Polygon บนแผนที่ (แปลงที่นำเข้าจะเป็น "สีส้มสว่าง" เพื่อให้เห็นความต่างชัดเจน)
                                 const layer = L.polygon(parsedLatLngs, {
                                     color: '#ffc107', 
                                     fillColor: '#ffc107',
@@ -335,7 +344,7 @@
                                     weight: 3
                                 });
 
-                                const plotId = Date.now() + i; // ป้องกัน ID ซ้ำกันกรณีโหลดพร้อมกันหลายเรคคอร์ด
+                                const plotId = Date.now() + i; 
                                 const importedPlot = {
                                     id: plotId,
                                     name: name,
@@ -355,7 +364,7 @@
                                 importedCount++;
                             }
                         } catch (error) {
-                            console.error(`เกิดข้อผิดพลาดในการแกะพิกัดแถวที่ ${i + 1}:`, error);
+                            console.error(`เกิดข้อผิดพลาดแถวที่ ${i + 1}:`, error);
                         }
                     }
                 }
@@ -363,19 +372,44 @@
                 if (importedCount > 0) {
                     updateTableDisplay();
                     alert(`🎉 นำเข้าข้อมูลสำเร็จเรียบร้อย ทั้งหมด ${importedCount} แปลง!`);
-                    
-                    // สั่งให้แผนที่แพน (Pan) หน้าจอและซูมโฟกัสไปหาจุดแปลงที่นำเข้าล่าสุดอัตโนมัติ
                     if (firstImportedLayer) {
                         map.fitBounds(firstImportedLayer.getBounds());
                     }
                 } else {
-                    alert("❌ ไม่สามารถอ่านพิกัดจากไฟล์ที่เลือกได้ กรุณาตรวจสอบฟอร์แมตไฟล์ CSV ของคุณ");
+                    alert("❌ ไม่สามารถอ่านพิกัดจากไฟล์ได้ กรุณาตรวจสอบฟอร์แมตไฟล์ CSV");
                 }
             };
 
             reader.readAsText(file, "UTF-8");
-            input.value = ''; // ล้างค่าอินพุตเพื่อให้อนุญาตอัปโหลดไฟล์เดิมซ้ำได้ในครั้งต่อไป
+            document.getElementById('fileInput').value = ''; 
         }
+
+        // --- 9. ระบบ Drag & Drop ไฟล์ลงบนตัวแผนที่โดยตรง ---
+        const mapDiv = document.getElementById('map');
+        const overlay = document.getElementById('dropZoneOverlay');
+
+        window.addEventListener('dragover', function(e) { e.preventDefault(); });
+        window.addEventListener('drop', function(e) { e.preventDefault(); });
+
+        mapDiv.addEventListener('dragenter', function(e) {
+            e.preventDefault();
+            overlay.style.display = 'flex';
+        });
+
+        mapDiv.addEventListener('dragleave', function(e) {
+            overlay.style.display = 'none';
+        });
+
+        mapDiv.addEventListener('drop', function(e) {
+            e.preventDefault();
+            overlay.style.display = 'none';
+            const file = e.dataTransfer.files[0];
+            if (file && file.name.endsWith('.csv')) {
+                importCSV(file);
+            } else {
+                alert("❌ รองรับเฉพาะไฟล์นามสกุล .csv เท่านั้นครับ");
+            }
+        });
     </script>
 </body>
 </html>
