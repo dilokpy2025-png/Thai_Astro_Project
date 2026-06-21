@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>บอสอินญ์ OCR - ลากวางวิเคราะห์เบอร์มงคล & ส่งออก CSV</title>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f6f9;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 950px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        h1 {
+            color: #1e3a8a;
+            text-align: center;
+            margin-bottom: 5px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 25px;
+        }
+        .drop-zone {
+            border: 3px dashed #1e3a8a;
+            border-radius: 8px;
+            padding: 50px 20px;
+            text-align: center;
+            background-color: #f0f4ff;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 1.3rem;
+            color: #1e3a8a;
+            font-weight: bold;
+        }
+        .drop-zone.drag-over {
+            background-color: #dbeafe;
+            border-color: #2563eb;
+            transform: scale(0.99);
+        }
+        #preview-box {
+            margin-top: 15px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+        .preview-img {
+            max-height: 120px;
+            border-radius: 6px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            border: 2px solid #fff;
+        }
+        .status {
+            text-align: center;
+            margin: 20px 0;
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: #d97706;
+        }
+        .toolbar {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .btn {
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            display: none;
+            font-size: 1rem;
+            transition: background 0.2s;
+        }
+        .btn-clear {
+            background-color: #ef4444;
+            color: white;
+        }
+        .btn-clear:hover {
+            background-color: #dc2626;
+        }
+        .btn-export {
+            background-color: #10b981;
+            color: white;
+        }
+        .btn-export:hover {
+            background-color: #059669;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            display: none;
+            background: white;
+        }
+        th, td {
+            border: 1px solid #e2e8f0;
+            padding: 12px 15px;
+            text-align: center;
+        }
+        th {
+            background-color: #1e3a8a;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+        .phone-num {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #1e3a8a;
+        }
+        .sum-badge {
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+        .set1 { color: #1e3a8a; }
+        .set2 { color: #16a34a; }
+        .set3 { color: #9333ea; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>บอสอินญ์ OCR - ตรวจสอบตารางรวมเบอร์</h1>
+    <div class="subtitle">ลากรูปภาพจาก Facebook มาวาง หรือกดวางภาพ แล้วส่งออกเป็นไฟล์ CSV ไปเปิดใน Excel/Google Sheets ได้ทันที</div>
+
+    <div class="drop-zone" id="drop-area">
+        📥 ลากรูปตารางเบอร์จาก Facebook มาปล่อยตรงนี้ <br style="margin-bottom: 10px;">
+        <span style="font-size: 1rem; color: #666; font-weight: normal;">(หรือคลิกที่หน้าเว็บแล้วกด Cmd+V / Ctrl+V เพื่อวางภาพ)</span>
+        <div id="preview-box"></div>
+    </div>
+
+    <div class="status" id="status-text"></div>
+
+    <div class="toolbar">
+        <button class="btn btn-export" id="export-btn" onclick="exportToCSV()">📊 ส่งออกไฟล์ CSV</button>
+        <button class="btn btn-clear" id="clear-btn" onclick="clearAllData()">🧹 ล้างข้อมูลทั้งหมด</button>
+    </div>
+
+    <table id="result-table">
+        <thead>
+            <tr>
+                <th>เบอร์โทรศัพท์</th>
+                <th>1. ผลรวมทั้งหมด (10 หลัก)</th>
+                <th>2. ผลรวมหลัก 3,4,5,6</th>
+                <th>3. ผลรวม 4 ตัวท้าย</th>
+            </tr>
+        </thead>
+        <tbody id="result-body"></tbody>
+    </table>
+</div>
+
+<script>
+    const dropArea = document.getElementById('drop-area');
+    const previewBox = document.getElementById('preview-box');
+    const statusText = document.getElementById('status-text');
+    const resultTable = document.getElementById('result-table');
+    const resultBody = document.getElementById('result-body');
+    const clearBtn = document.getElementById('clear-btn');
+    const exportBtn = document.getElementById('export-btn');
+
+    let scannedNumbersSet = new Set();
+    let phoneDataList = []; // Array สำหรับเก็บเพื่อส่งออก CSV
+
+    // --- 1. จัดการระบบลากและวาง (Drag & Drop) ---
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropArea.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            dropArea.classList.add('drag-over');
+        }, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            dropArea.classList.remove('drag-over');
+        }, false);
+    });
+
+    dropArea.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+
+        if (files.length > 0) {
+            handleFiles(files);
+        } else {
+            const html = dt.getData('text/html');
+            const match = html && html.match(/src="([^"]+)"/);
+            if (match && match[1]) {
+                handleImageUrl(match[1]);
+            } else {
+                statusText.innerText = "⚠️ ไม่สามารถอ่านรูปภาพนี้ได้ กรุณาลองใช้วิธีคัดลอกรูปภาพแล้วกดวางแทนครับ";
+            }
+        }
+    });
+
+    // --- 2. จัดการระบบกดวางภาพ (Paste Event) ---
+    window.addEventListener('paste', function(e) {
+        const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+        for (let index in items) {
+            const item = items[index];
+            if (item.kind === 'file' && item.type.indexOf('image/') !== -1) {
+                const blob = item.getAsFile();
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    addImgPreview(event.target.result);
+                    processOCR(event.target.result);
+                };
+                reader.readAsDataURL(blob);
+                break;
+            }
+        }
+    });
+
+    function handleFiles(files) {
+        for (let i = 0; i < files.length; i++) {
+            if (files[i].type.indexOf('image/') !== -1) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    addImgPreview(e.target.result);
+                    processOCR(e.target.result);
+                };
+                reader.readAsDataURL(files[i]);
+            }
+        }
+    }
+
+    function handleImageUrl(url) {
+        addImgPreview(url);
+        processOCR(url);
+    }
+
+    function addImgPreview(src) {
+        const img = document.createElement('img');
+        img.src = src;
+        img.className = 'preview-img';
+        previewBox.appendChild(img);
+    }
+
+    // --- 3. ระบบประมวลผล OCR (Tesseract.js) ---
+    async function processOCR(imageSrc) {
+        statusText.innerText = "⏳ กำลังสแกนรูปภาพด้วย AI ออฟไลน์...";
+        try {
+            const worker = await Tesseract.createWorker('eng');
+            const ret = await worker.recognize(imageSrc);
+            const rawText = ret.data.text;
+            await worker.terminate();
+
+            analyzeNumbers(rawText);
+        } catch (error) {
+            console.error(error);
+            statusText.innerText = "❌ เกิดข้อผิดพลาดในการแกะตัวเลขลากวาง";
+        }
+    }
+
+    // --- 4. Logic ผ่าสูตร 3 ชุดและการจัดการข้อมูล ---
+    function analyzeNumbers(text) {
+        const phoneRegex = /(0[689]\d{1}[-\s]?\d{3}[-\s]?\d{4})|(0[689]\d{8})/g;
+        const matches = text.match(phoneRegex);
+
+        if (!matches || matches.length === 0) {
+            statusText.innerText = "⚠️ รูปที่เพิ่งลากมาวาง สแกนเสร็จแล้วแต่ไม่พบตัวเลขเบอร์โทรศัพท์ครับ";
+            return;
+        }
+
+        const cleanNumbers = matches.map(num => num.replace(/[-\s]/g, ''));
+
+        cleanNumbers.forEach(phone => {
+            if (phone.length === 10 && !scannedNumbersSet.has(phone)) {
+                scannedNumbersSet.add(phone);
+
+                const digits = phone.split('').map(Number);
+                const totalSum = digits.reduce((a, b) => a + b, 0); 
+                const middleSum = digits.slice(2, 6).reduce((a, b) => a + b, 0); 
+                const lastFourSum = digits.slice(6, 10).reduce((a, b) => a + b, 0); 
+
+                const formattedPhone = `${phone.substring(0,3)}-${phone.substring(3,6)}-${phone.substring(6)}`;
+
+                // บันทึกข้อมูลเข้า Object เพื่อใช้ Export
+                phoneDataList.push({
+                    phone: formattedPhone,
+                    total: totalSum,
+                    middle: middleSum,
+                    lastFour: lastFourSum
+                });
+
+                const row = `
+                    <tr>
+                        <td class="phone-num">${formattedPhone}</td>
+                        <td class="sum-badge set1">${totalSum}</td>
+                        <td class="sum-badge set2">${middleSum}</td>
+                        <td class="sum-badge set3">${lastFourSum}</td>
+                    </tr>
+                `;
+                resultBody.innerHTML += row;
+            }
+        });
+
+        if (scannedNumbersSet.size > 0) {
+            statusText.innerText = `✅ เพิ่มเบอร์ใหม่สำเร็จ! ตอนนี้มีเบอร์ในคลังสแกนรวม ${scannedNumbersSet.size} เบอร์`;
+            resultTable.style.display = "table";
+            clearBtn.style.display = "inline-block";
+            exportBtn.style.display = "inline-block";
+        } else {
+            statusText.innerText = "⚠️ สแกนเรียบร้อย แต่เบอร์ทั้งหมดซ้ำกับที่มีอยู่แล้วในตารางด้านล่าง";
+        }
+    }
+
+    // --- 5. ฟังก์ชันส่งออกไฟล์ CSV สำหรับนำไปเปิดใน Excel / Google Sheets ---
+    function exportToCSV() {
+        if (phoneDataList.length === 0) return;
+
+        // ใส่ \uFEFF เพื่อบอก Excel ว่านี่คือรหัส UTF-8 ป้องกันสระภาษาไทยเพี้ยน
+        let csvContent = "\uFEFF"; 
+        csvContent += "เบอร์โทรศัพท์,ผลรวมทั้งหมด (10 หลัก),ผลรวมหลัก 3-6,ผลรวม 4 ตัวท้าย\n";
+
+        phoneDataList.forEach(item => {
+            csvContent += `"${item.phone}",${item.total},${item.middle},${item.lastFour}\n`;
+        });
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        
+        const dateStr = new Date().toISOString().slice(0,10);
+        link.setAttribute("href", url);
+        link.setAttribute("download", `คลังเบอร์วิเคราะห์_บอสอินญ์_${dateStr}.csv`);
+        link.style.visibility = 'hidden';
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    function clearAllData() {
+        scannedNumbersSet.clear();
+        phoneDataList = [];
+        previewBox.innerHTML = "";
+        resultBody.innerHTML = "";
+        resultTable.style.display = "none";
+        clearBtn.style.display = "none";
+        exportBtn.style.display = "none";
+        statusText.innerText = "🧹 ล้างข้อมูลเรียบร้อย เริ่มลากวางภาพใหม่ได้เลยครับบอส";
+    }
+</script>
+
+</body>
+</html>
