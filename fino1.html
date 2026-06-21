@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>บอสอินญ์ OCR - โปรแกรมวิเคราะห์เบอร์จากการแคปจอ</title>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f6f9;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        h1 {
+            color: #1e3a8a;
+            text-align: center;
+            margin-bottom: 5px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 25px;
+        }
+        .paste-zone {
+            border: 3px dashed #3b82f6;
+            border-radius: 8px;
+            padding: 40px 20px;
+            text-align: center;
+            background-color: #eff6ff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.2rem;
+            color: #2563eb;
+            font-weight: bold;
+        }
+        .paste-zone:hover {
+            background-color: #dbeafe;
+        }
+        #preview-img {
+            max-width: 100%;
+            max-height: 250px;
+            margin-top: 15px;
+            border-radius: 6px;
+            display: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .status {
+            text-align: center;
+            margin: 20px 0;
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: #d97706;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            display: none;
+        }
+        th, td {
+            border: 1px solid #e2e8f0;
+            padding: 12px 15px;
+            text-align: center;
+        }
+        th {
+            background-color: #1e3a8a;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+        .phone-num {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #1e3a8a;
+        }
+        .sum-badge {
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+        .set1 { color: #1e3a8a; }
+        .set2 { color: #16a34a; }
+        .set3 { color: #9333ea; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>บอสอินญ์ OCR Analyzer</h1>
+    <div class="subtitle">คลิกที่หน้าเว็บนี้ แล้วกดวางภาพ (Cmd+V / Ctrl+V) เพื่อสแกนวิเคราะห์ได้ทันที</div>
+
+    <div class="paste-zone" id="paste-box">
+        📸 กดคลิกตรงนี้ แล้วกดวางภาพ (Paste) ที่แคปหน้าจอมาได้เลย
+        <br>
+        <img id="preview-img" alt="Preview ของรูปที่กดวาง">
+    </div>
+
+    <div class="status" id="status-text"></div>
+
+    <table id="result-table">
+        <thead>
+            <tr>
+                <th>เบอร์โทรศัพท์</th>
+                <th>1. ผลรวมทั้งหมด (10 หลัก)</th>
+                <th>2. ผลรวมหลัก 3,4,5,6</th>
+                <th>3. ผลรวม 4 ตัวท้าย</th>
+            </tr>
+        </thead>
+        <tbody id="result-body">
+            </tbody>
+    </table>
+</div>
+
+<script>
+    const pasteBox = document.getElementById('paste-box');
+    const previewImg = document.getElementById('preview-img');
+    const statusText = document.getElementById('status-text');
+    const resultTable = document.getElementById('result-table');
+    const resultBody = document.getElementById('result-body');
+
+    // จับการกดวาง (Paste Event) ของบราวเซอร์
+    window.addEventListener('paste', function(e) {
+        const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+        
+        for (let index in items) {
+            const item = items[index];
+            if (item.kind === 'file' && item.type.indexOf('image/') !== -1) {
+                const blob = item.getAsFile();
+                const reader = new FileReader();
+                
+                reader.onload = function(event) {
+                    // แสดงรูปตัวอย่างที่เพิ่งวาง
+                    previewImg.src = event.target.result;
+                    previewImg.style.display = 'inline-block';
+                    
+                    // เริ่มกระบวนการทำ OCR
+                    processOCR(event.target.result);
+                };
+                
+                reader.readAsDataURL(blob);
+                break;
+            }
+        }
+    });
+
+    // ฟังก์ชันรัน OCR ด้วย Tesseract.js
+    async function processOCR(imageSrc) {
+        statusText.innerText = "⏳ กำลังสแกนรูปภาพและถอดรหัสตัวเลข...";
+        resultTable.style.display = "none";
+        resultBody.innerHTML = "";
+
+        try {
+            // ใช้โหมดภาษาอังกฤษ/ละตินเพื่อให้สแกนตัวเลขได้ไวและแม่นยำ
+            const worker = await Tesseract.createWorker('eng');
+            const ret = await worker.recognize(imageSrc);
+            const rawText = ret.data.text;
+            await worker.terminate();
+
+            // ส่งข้อความดิบไปกรองและคำนวณสูตรบอสอินญ์
+            analyzeNumbers(rawText);
+        } catch (error) {
+            console.error(error);
+            statusText.innerText = "❌ เกิดข้อผิดพลาดในการสแกนรูปภาพ กรุณาลองใหม่อีกครั้ง";
+        }
+    }
+
+    // ฟังก์ชันกรองดึงเบอร์โทรและผ่าสูตร 3 ชุดเลข
+    function analyzeNumbers(text) {
+        // Regex ค้นหาแพทเทิร์นเบอร์มือถือไทย
+        const phoneRegex = /(0[689]\d{1}[-\s]?\d{3}[-\s]?\d{4})|(0[689]\d{8})/g;
+        const matches = text.match(phoneRegex);
+
+        if (!matches || matches.length === 0) {
+            statusText.innerText = "⚠️ ไม่พบเบอร์โทรศัพท์ที่เข้าเงื่อนไขในรูปภาพนี้เลยครับ";
+            return;
+        }
+
+        // Clean ข้อมูล: ลบขีด ลบช่องว่าง และตัดเบอร์ซ้ำออก
+        const cleanNumbers = matches.map(num => num.replace(/[-\s]/g, ''));
+        const uniqueNumbers = [...new Set(cleanNumbers)];
+
+        let hasValidData = false;
+
+        uniqueNumbers.forEach(phone => {
+            if (phone.length === 10) {
+                hasValidData = true;
+                const digits = phone.split('').map(Number);
+
+                // ชุดที่ 1: ผลรวมทั้งหมด 10 หลัก
+                const totalSum = digits.reduce((a, b) => a + b, 0);
+
+                // ชุดที่ 2: ผลรวมหลักที่ 3, 4, 5, 6 (Index 2 ถึง 5)
+                const middleSum = digits.slice(2, 6).reduce((a, b) => a + b, 0);
+
+                // ชุดที่ 3: ผลรวม 4 ตัวท้าย (Index 6 ถึง 9)
+                const lastFourSum = digits.slice(6, 10).reduce((a, b) => a + b, 0);
+
+                // จัดฟอร์แมตเบอร์ให้อ่านง่ายขึ้น (เช่น 095-469-2465)
+                const formattedPhone = `${phone.substring(0,3)}-${phone.substring(3,6)}-${phone.substring(6)}`;
+
+                // สร้างแถวตารางผลลัพธ์
+                const row = `
+                    <tr>
+                        <td class="phone-num">${formattedPhone}</td>
+                        <td class="sum-badge set1">${totalSum}</td>
+                        <td class="sum-badge set2">${middleSum}</td>
+                        <td class="sum-badge set3">${lastFourSum}</td>
+                    </tr>
+                `;
+                resultBody.innerHTML += row;
+            }
+        });
+
+        if (hasValidData) {
+            statusText.innerText = `✅ สแกนเสร็จสิ้น! พบทั้งหมด ${resultBody.children.length} เบอร์`;
+            resultTable.style.display = "table";
+        } else {
+            statusText.innerText = "⚠️ ไม่พบเบอร์โทรศัพท์ที่ครบ 10 หลักในรูปภาพนี้";
+        }
+    }
+</script>
+
+</body>
+</html>
